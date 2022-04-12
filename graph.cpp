@@ -1,4 +1,4 @@
-#include "graph.h"
+#include "header/graph.h"
 
 
 Graph::Graph(std::vector<Node> nodes) {

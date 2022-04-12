@@ -1,4 +1,4 @@
-#include "ant.h"
+#include "header/ant.h"
 
 Ant::Ant(Node loc) {
     s = loc;
@@ -65,7 +65,7 @@ Edge* Ant::chooseEdge(std::unordered_map<long int, Edge*> o_edges)
         sum_prob += probs[i];
     }
 
-    printf("%d, %d, %ld, %ld\n", i, prob_edges.size(), prob_edges[i]->s.id, prob_edges[i]->t.id);
+    printf("%d, %ld, %ld, %ld\n", i, prob_edges.size(), prob_edges[i]->s.id, prob_edges[i]->t.id);
 
     return prob_edges[i];
 }

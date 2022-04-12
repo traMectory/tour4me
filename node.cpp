@@ -1,4 +1,4 @@
-#include "node.h"
+#include "header/node.h"
 
 double Node::vec_angle(Node n1, Node n2)
 {

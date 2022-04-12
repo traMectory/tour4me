@@ -1,4 +1,4 @@
-#include "quality.h"
+#include "header/quality.h"
 
 
 double quality(Ant* ant) {

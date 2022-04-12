@@ -1,7 +1,7 @@
 #include <iostream>
-#include "graph.h"
-#include "ant_colony.h"
-#include "values.h"
+#include "header/graph.h"
+#include "header/ant_colony.h"
+#include "header/values.h"
 
 Graph getTestGraph() {
     std::vector<Node> nodes;
