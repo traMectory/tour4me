@@ -16,16 +16,16 @@ std::unordered_map<long int, Edge*> Graph::getEdges(Node node)
     return m_edges.at(node.id);
 }
 
-void Graph::addEdge(Edge edge) {
-    m_edges.at(edge.s.id).insert(std::make_pair(edge.t.id, &edge));
-    m_edges.at(edge.t.id).insert(std::make_pair(edge.s.id, &edge));
+void Graph::addEdge(Edge* edge) {
+    m_edges.at(edge->s.id).insert(std::make_pair(edge->t.id, edge));
+    m_edges.at(edge->t.id).insert(std::make_pair(edge->s.id, edge));
 }
 
 
 void Graph::addEdge(long int s_id, long int t_id, double length) {
     Node s = id_node.at(s_id);
     Node t = id_node.at(t_id);
-    Edge edge = Edge(s, t, length);
+    Edge* edge = new Edge(s, t, length);
 
     addEdge(edge);
 }

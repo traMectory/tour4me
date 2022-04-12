@@ -65,7 +65,6 @@ Edge* Ant::chooseEdge(std::unordered_map<long int, Edge*> o_edges)
         sum_prob += probs[i];
     }
 
-    printf("%d, %ld, %ld, %ld\n", i, prob_edges.size(), prob_edges[i]->s.id, prob_edges[i]->t.id);
 
     return prob_edges[i];
 }
@@ -81,14 +80,14 @@ void Ant::moveToNext(Graph* graph)
     if (m_visited.count(next_loc.id) == 0)
         n_unqiue += 1;
 
-//     Edge* edge = graph->getEdge(m_loc.id, next_loc.id);
+    Edge* edge = graph->getEdge(m_loc.id, next_loc.id);
 
-//     m_visited_edges.insert(edge);
+    m_visited_edges.insert(edge);
 
-//     m_loc = next_loc;
-//     m_path.push_back(m_loc);
-//     m_visited.insert(m_loc.id);
-//     m_l_path += next_edge->length;
+    m_loc = next_loc;
+    m_path.push_back(m_loc);
+    m_visited.insert(m_loc.id);
+    m_l_path += next_edge->length;
 }
 
 int Ant::atStart()

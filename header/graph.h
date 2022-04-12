@@ -18,7 +18,7 @@ private:
 public:
     Graph(std::vector<Node> nodes);
     
-    void addEdge(Edge edge);
+    void addEdge(Edge* edge);
     void addEdge(long int s_id, long int t_id, double length);
 
     Edge* getEdge(long int s_id, long int t_id) { return m_edges.at(s_id).at(t_id); };
