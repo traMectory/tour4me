@@ -15,34 +15,52 @@ void Colony::walk_ant(Ant* ant, Graph* graph, double alpha, double beta)
     }
 }
 
-void Colony::do_colony(int n_ants, Graph* graph, Node s, double alpha, double beta)
+void Colony::do_colony(Graph* graph, Node s, double alpha, double beta)
 {
-
-    Ant bestAnt;
-    double bestQuality = -1;
-
-    for (int i = 0; i < n_ants; i++)
+    for (int j = 0; j < N_GENERATIONS; j++)
     {
-        Ant ant(s);
-        walk_ant(&ant, graph, alpha, beta);
+        Ant* bestAnt;
+        double bestQuality = -1;
 
-        // printf("%f\n", quality(graph, &ant));
-        double antQuality = quality(&ant);
+        Ant* ants [N_ANTS];
 
-        updatePheromones(graph, &ant, antQuality);
+        for (int i = 0; i < N_ANTS; i++)
+        {
+            Ant* ant = new Ant(s);
+            ants[i] = ant;
+            walk_ant(ant, graph, alpha, beta);
 
-        // if (ant.atStart())
-        //     printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
-        // else
-        //     printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
+            // printf("%f\n", quality(graph, &ant));
+            double antQuality = quality(ant);
 
-        if (ant.atStart() && antQuality > bestQuality) {
-            bestAnt = ant;
-            bestQuality = antQuality;
-            double uniqueness = ant.getNUnique()/ant.getPath().size();
-            printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
+            // if (ant.atStart())
+            //     printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
+            // else
+            //     printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
+
+            if (ant->atStart() && antQuality > bestQuality) {
+                bestAnt = ant;
+                bestQuality = antQuality;
+                
+                double uniqueness = (double)ant->getNUnique() / (double)ant->getPath().size();
+                printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant->getLength(), uniqueness);
+            }
         }
-    }
 
-    bestAnt.printPath();
+        updatePheromones(graph, bestAnt, V_BEST_ANT_PROFIT);
+        bestAnt->printPath();
+
+        // for (int i = 0; i < N_ANTS; i++) 
+        // {
+        //     double antQuality = quality(ants[i]);
+        //     updatePheromones(graph, ants[i], antQuality);
+
+        //     delete ants[i];
+        // }
+
+        
+        // bestAnt->printPath();
+    }
 }
+
+    

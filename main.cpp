@@ -2,6 +2,8 @@
 #include "header/graph.h"
 #include "header/ant_colony.h"
 #include "header/values.h"
+#include <SFML/Graphics.hpp>
+
 
 Graph getTestGraph() {
     std::vector<Node> nodes;
@@ -33,16 +35,17 @@ Graph getSmallGraph() {
 int main() 
 {
     Graph graph = getSmallGraph();
+    Graph genGraph = getSmallGraph();
     printf("Nodes: %d, Edges: %d\n", graph.getNumberOfNodes(), graph.getNumberOfEdges());
 
     Colony ants;
 
-    long int start = 31423394;
+    long int start = 160374;
     // // long int start = 0;
 
-    srand(2);
+    srand(3);
 
-    ants.do_colony(N_ANTS, &graph, graph.getNode(start), 1, 1);
+    ants.do_colony(&graph, graph.getNode(start), 1, 1);
 
     
 
