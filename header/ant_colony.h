@@ -14,7 +14,7 @@ public:
 
     void walk_ant(Ant* ant, Graph* graph, double alpha, double beta);
 
-    void do_colony(Graph* graph, Node s, double alpha, double beta);
+    std::vector<Node> do_colony(Graph* graph, Node s, double alpha, double beta);
 };
 
 #endif

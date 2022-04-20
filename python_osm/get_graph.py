@@ -1,43 +1,74 @@
-
-from typing import final
 import osmnx as ox
-import networkx as nx
-from networkx.classes.function import path_weight
-from geopy import distance
+import math
 
-# gravel_grade = 0.1
-# goal_distance = 50*1000
-# desire_tags = {'unclassified'}
-# desire_grade = 0.1
-# avoid_tags = {'residential', 'secondary', 'tertiary', 'primary', 'motorway'}
-# surface_tags = {'unclassified', 'compacted_gravel', 'compacted'}
-# avoid_grade = 2
-# cross_penalty = 1000
+import sys
 
-# useful_tags_way = ['oneway', 'lanes', 'name', 'highway', 'maxspeed', 'width', 'est_width','surface']
-# ox.config(use_cache=True, log_console=True, useful_tags_way=useful_tags_way)
+useful_tags_way = ['oneway', 'lanes', 'name', 'highway', 'maxspeed', 'width', 'est_width','surface']
+ox.config(use_cache=True, log_console=False, useful_tags_way=useful_tags_way)
 
-G = ox.graph_from_bbox(51.50, 51.478274, 7.437570, 7.389679, network_type='bike')
+#radius of the earth
+R = 6371e3
 
-# remove = [node for node,degree in dict(G.degree()).items() if degree < 2]
-# while len(remove):
-#     G.remove_nodes_from(remove)
-#     remove = [node for node,degree in dict(G.degree()).items() if degree < 2]
+target_distance = 10e3
 
-node_str = 'std::vector<Node> nodes;\n\n'
+center_lat = 51.4895 
+center_lon = 7.40577
+
+file_name = "10kArbeit"
+
+if len(sys.argv) == 4 + 1:
+    target_distance = float(sys.argv[1])
+    center_lat = float(sys.argv[2])
+    center_lon = float(sys.argv[3])
+    file_name = sys.argv[4]
+
+print(f"{target_distance = }, {center_lat = }, {center_lon = }, {file_name = }")
+
+center_lat *= math.pi / 180
+center_lon *= math.pi / 180
+
+max_lat = math.asin( math.sin(center_lat)*math.cos(target_distance/(4*R)) +      math.cos(center_lat)*math.sin(target_distance/(4*R)) )
+min_lat = math.asin( math.sin(center_lat)*math.cos(target_distance/(4*R)) + -1 * math.cos(center_lat)*math.sin(target_distance/(4*R)) )
+
+max_lon = center_lon + math.atan2(      math.sin(target_distance/(4*R))*math.cos(center_lat), math.cos(target_distance/(4*R))-math.sin(center_lat)*math.sin(center_lat) )
+min_lon = center_lon + math.atan2( -1 * math.sin(target_distance/(4*R))*math.cos(center_lat), math.cos(target_distance/(4*R))-math.sin(center_lat)*math.sin(center_lat) )
+
+max_lat *= 180 / math.pi
+min_lat *= 180 / math.pi
+
+max_lon *= 180 / math.pi
+min_lon *= 180 / math.pi
+
+center_lat *= 180 / math.pi
+center_lon *= 180 / math.pi
+
+G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon, network_type='bike')
+s = ox.distance.nearest_nodes(G, center_lon, center_lat)
+
+# ox.plot_graph_route(G, [s], route_linewidth=1, node_size=0)
+
+node_str = f"c {target_distance = }, {center_lat = }, {center_lon = }, {file_name = }\n"
+node_str += f"c g $id_start_vertex $target_distance $center_lat $center_lon\n"
+node_str += f"c p #nodes #edges\n"
+node_str += f"c n $id $lat $lon\n"
+node_str += f"c e $v_id $w_id $e_cost $e_profit\n"
+node_str += f"g {s} {target_distance} {center_lat} {center_lon}\n"
+node_str += f"p {len(G.nodes)} {sum(1 if not G.get_edge_data(s, t)[0]['oneway'] else 0 for s, t, _ in G.edges)}\n"
 for node in G.nodes:
     lat = G.nodes[node]['y']
     lon = G.nodes[node]['x']
-    node_str += f"    nodes.push_back(Node({node}, {lat}, {lon}));"
-
-node_str += f"\n    Graph graph = Graph(nodes);\n\n"
+    node_str += f"n {node} {lat} {lon}\n"
 
 for edge in G.edges:
     s, t, _ = edge
     data = G.get_edge_data(s, t)[0]
     length = data['length']
     if not data['oneway']:
-        node_str += f"    graph.addEdge({s}, {t}, {length});"
+        node_str += f"e {s} {t} {length} {1}\n"
+
+
+with open(f"input/{file_name}.txt", "w") as text_file:
+    text_file.write(node_str)
 
 
 
@@ -45,10 +76,10 @@ for edge in G.edges:
 # n = text_file.write(node_str)
 # text_file.close()
 
-path = [160374, 286338878, 670097774, 677231865, 677231868, 1837854880, 247655796, 1992319096, 1992319109, 1992319115, 1992319111, 1992319104, 1992319106, 1992319107, 1992319123, 2187277329, 243882204, 1134230127, 243090198, 243090197, 6513896073, 243090861, 246584324, 249398913, 1448929542, 249398800, 243092689, 9208316471, 275351444, 249360297, 249360419, 692238646, 249360302, 692238637, 692238598, 336361993, 275351445, 275672220, 3751855833, 3751855827, 1491580834, 275351455, 278836066, 4172705007, 164513, 316774738, 5617111352, 749921936, 69329258, 5616982997, 69329262, 277899267, 313478088, 4036708666, 277899262, 275362133, 277899275, 277899276, 277899280, 4036708659, 4036676133, 4036676128, 25528706, 9546203664, 3074381830, 3074408190, 76845983, 1291958717, 76845963, 360638222, 69329163, 69329067, 69329055, 276044225, 7392085123, 360732103, 360645773, 255161605, 32558270, 311584339, 249396642, 255159153, 249539594, 849108441, 849108265, 849108399, 849108356, 1647851185, 7035958879, 1647851187, 2472460034, 1647851194, 6600551811, 3393860067, 2482077606, 1647851180, 1647851171, 6600659507, 2023126445, 254461745, 2023126444, 6600659472, 6600659511, 268456660, 6600659457, 6828185590, 7939095781, 6600659458, 243091055, 6600659496, 6600659510, 269614115, 6600659459, 269605393, 286531803, 269605392, 268450559, 2147783251, 7992330475, 2147783264, 7992330474, 7992330473, 7617693577, 6600659474, 677231700, 52919181, 677231627, 6600659487, 6600659488, 6600659490, 677231971, 247655824, 677231968, 677231906, 677231904, 130117508, 130117546, 677231298, 677231291, 677231274, 677231273, 677230898, 52919183, 677230875, 160374, ]
+# path = [160374, 286338878, 670097774, 677231865, 677231868, 1837854880, 247655796, 1992319096, 1992319109, 1992319115, 1992319111, 1992319104, 1992319106, 1992319107, 1992319123, 2187277329, 243882204, 1134230127, 243090198, 243090197, 6513896073, 243090861, 246584324, 249398913, 1448929542, 249398800, 243092689, 9208316471, 275351444, 249360297, 249360419, 692238646, 249360302, 692238637, 692238598, 336361993, 275351445, 275672220, 3751855833, 3751855827, 1491580834, 275351455, 278836066, 4172705007, 164513, 316774738, 5617111352, 749921936, 69329258, 5616982997, 69329262, 277899267, 313478088, 4036708666, 277899262, 275362133, 277899275, 277899276, 277899280, 4036708659, 4036676133, 4036676128, 25528706, 9546203664, 3074381830, 3074408190, 76845983, 1291958717, 76845963, 360638222, 69329163, 69329067, 69329055, 276044225, 7392085123, 360732103, 360645773, 255161605, 32558270, 311584339, 249396642, 255159153, 249539594, 849108441, 849108265, 849108399, 849108356, 1647851185, 7035958879, 1647851187, 2472460034, 1647851194, 6600551811, 3393860067, 2482077606, 1647851180, 1647851171, 6600659507, 2023126445, 254461745, 2023126444, 6600659472, 6600659511, 268456660, 6600659457, 6828185590, 7939095781, 6600659458, 243091055, 6600659496, 6600659510, 269614115, 6600659459, 269605393, 286531803, 269605392, 268450559, 2147783251, 7992330475, 2147783264, 7992330474, 7992330473, 7617693577, 6600659474, 677231700, 52919181, 677231627, 6600659487, 6600659488, 6600659490, 677231971, 247655824, 677231968, 677231906, 677231904, 130117508, 130117546, 677231298, 677231291, 677231274, 677231273, 677230898, 52919183, 677230875, 160374, ]
 
 
-fig, ax = ox.plot_graph_route(G, path, route_linewidth=1, node_size=0, bgcolor='k')
+# fig, ax = ox.plot_graph_route(G, path, route_linewidth=1, node_size=0, bgcolor='k')
 
 
 
@@ -82,8 +113,7 @@ fig, ax = ox.plot_graph_route(G, path, route_linewidth=1, node_size=0, bgcolor='
 #         # print(G_modified.get_edge_data(v, w)[0])
 #         # print(G.get_edge_data(v, w)[0])
 
-s = ox.get_nearest_node(G, (51.489472, 7.405772))
-print(s)
+
 
 
 # #Find best second node

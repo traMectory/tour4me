@@ -87,19 +87,10 @@ void Ant::moveToNext(Graph* graph)
     m_loc = next_loc;
     m_path.push_back(m_loc);
     m_visited.insert(m_loc.id);
-    m_l_path += next_edge->length;
+    m_l_path += next_edge->cost;
 }
 
 int Ant::atStart()
 {
     return m_loc.compare(s);
-}
-
-void Ant::printPath()
-{
-    printf("[");
-    for (Node node : m_path) {
-        printf("%ld, ", node.id);
-    }
-    printf("]\n");
 }

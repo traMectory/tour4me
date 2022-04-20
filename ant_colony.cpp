@@ -15,11 +15,14 @@ void Colony::walk_ant(Ant* ant, Graph* graph, double alpha, double beta)
     }
 }
 
-void Colony::do_colony(Graph* graph, Node s, double alpha, double beta)
+std::vector<Node> Colony::do_colony(Graph* graph, Node s, double alpha, double beta)
 {
+    std::vector<Node> bestPath;
     for (int j = 0; j < N_GENERATIONS; j++)
     {
+
         Ant* bestAnt;
+
         double bestQuality = -1;
 
         Ant* ants [N_ANTS];
@@ -40,6 +43,7 @@ void Colony::do_colony(Graph* graph, Node s, double alpha, double beta)
 
             if (ant->atStart() && antQuality > bestQuality) {
                 bestAnt = ant;
+                bestPath = ant->getPath();
                 bestQuality = antQuality;
                 
                 double uniqueness = (double)ant->getNUnique() / (double)ant->getPath().size();
@@ -48,19 +52,20 @@ void Colony::do_colony(Graph* graph, Node s, double alpha, double beta)
         }
 
         updatePheromones(graph, bestAnt, V_BEST_ANT_PROFIT);
-        bestAnt->printPath();
+        // bestAnt.printPath();
 
-        // for (int i = 0; i < N_ANTS; i++) 
-        // {
-        //     double antQuality = quality(ants[i]);
-        //     updatePheromones(graph, ants[i], antQuality);
+        for (int i = 0; i < N_ANTS; i++) 
+        {
+            double antQuality = quality(ants[i]);
+            updatePheromones(graph, ants[i], antQuality);
 
-        //     delete ants[i];
-        // }
+            delete ants[i];
+        }
 
         
         // bestAnt->printPath();
     }
+    return bestPath;
 }
 
     

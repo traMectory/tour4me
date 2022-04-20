@@ -5,3 +5,5 @@ cache
 gmon.out
 main
 analysis.txt
+input/*
+output/*
