@@ -9,12 +9,12 @@ ox.config(use_cache=True, log_console=False, useful_tags_way=useful_tags_way)
 #radius of the earth
 R = 6371e3
 
-target_distance = 10e3
+target_distance = 100e3
 
 center_lat = 51.4895 
 center_lon = 7.40577
 
-file_name = "10kArbeit"
+file_name = "100kArbeit"
 
 if len(sys.argv) == 4 + 1:
     target_distance = float(sys.argv[1])
@@ -54,6 +54,9 @@ node_str += f"c n $id $lat $lon\n"
 node_str += f"c e $v_id $w_id $e_cost $e_profit\n"
 node_str += f"g {s} {target_distance} {center_lat} {center_lon}\n"
 node_str += f"p {len(G.nodes)} {sum(1 if not G.get_edge_data(s, t)[0]['oneway'] else 0 for s, t, _ in G.edges)}\n"
+
+print(node_str)
+
 for node in G.nodes:
     lat = G.nodes[node]['y']
     lon = G.nodes[node]['x']

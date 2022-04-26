@@ -2,7 +2,6 @@
 #include "header/graph.h"
 #include "header/ant_colony.h"
 #include "header/values.h"
-#include <SFML/Graphics.hpp>
 
 
 int main() 

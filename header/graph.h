@@ -45,6 +45,8 @@ public:
     int getNumberOfNodes() { return m_nodes.size(); };
     int getNumberOfEdges();
 
+    // std::vector<Node> dijkstra(Node source, Node target);
+
 };
 
 #endif
