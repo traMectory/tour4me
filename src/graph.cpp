@@ -1,4 +1,4 @@
-#include "header/graph.h"
+#include "graph.h"
 
 
 std::string next_word(std::string* line, char delimiter) {

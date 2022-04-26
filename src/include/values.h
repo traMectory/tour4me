@@ -4,6 +4,7 @@
 #include "graph.h"
 #include "ant.h"
 
+
 static int N_ANTS = 1000;
 static int N_GENERATIONS = 20;
 

@@ -1,4 +1,4 @@
-#include "header/ant_colony.h"
+#include "ant_colony.h"
 
 void Colony::update_pheromones(Graph graph, std::vector<Node> path)
 {
@@ -46,7 +46,7 @@ std::vector<Node> Colony::do_colony(Graph* graph, Node s, double alpha, double b
                 bestPath = ant->getPath();
                 bestQuality = antQuality;
                 
-                double uniqueness = (double)ant->getNUnique() / (double)ant->getPath().size();
+                double uniqueness = (double) ant->getNUnique() / (double) ant->getPath().size();
                 printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant->getLength(), uniqueness);
             }
         }
@@ -54,7 +54,7 @@ std::vector<Node> Colony::do_colony(Graph* graph, Node s, double alpha, double b
         updatePheromones(graph, bestAnt, V_BEST_ANT_PROFIT);
         // bestAnt.printPath();
 
-        for (int i = 0; i < N_ANTS; i++) 
+        for (int i = 0; i < N_ANTS; i++)
         {
             double antQuality = quality(ants[i]);
             updatePheromones(graph, ants[i], antQuality);

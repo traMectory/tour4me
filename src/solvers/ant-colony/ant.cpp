@@ -1,4 +1,4 @@
-#include "header/ant.h"
+#include "ant.h"
 
 Ant::Ant(Node loc) {
     s = loc;
