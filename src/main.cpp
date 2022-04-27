@@ -1,24 +1,25 @@
 #include "main.h"
 
-
 int main(int argc, char* argv[]) 
 {
     parseOptions(argc, argv);
 
-    std::cout << filename << std::endl;
-    // std::string file_name = "10kArbeit";
+    Problem problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/" + filename + ".txt");
+    // Graph graph = getSmallGraph();
+    printf("Nodes: %d, Edges: %d\n", problem.getNumberOfNodes(), problem.getNumberOfEdges());
 
-    // Graph graph("input/" + file_name + ".txt");
-    // // Graph graph = getSmallGraph();
-    // printf("Nodes: %d, Edges: %d\n", graph.getNumberOfNodes(), graph.getNumberOfEdges());
+    Colony ants;
 
-    // Colony ants;
+    SolveStatus status = ants.solve(&problem);
 
-    // srand(3);
+    switch(status)
+    {
+        case SolveStatus::Optimal   : printf("Optimal solution found!\n"); break;
+        case SolveStatus::Feasible  : printf("Feasible solution found\n"); break;
+        case SolveStatus::Unsolved  : printf("Problem was unsolved\n"); break;
+    }
 
-    // std::vector<Node> path = ants.do_colony(&graph, graph.getStart(), 1, 1);
-
-    // graph.outputPath(path, file_name);
+    // problem.outputPath(path, filename);
     
-    // return 0;
+    return 0;
 }

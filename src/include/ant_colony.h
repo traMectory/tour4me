@@ -6,15 +6,19 @@
 #include "ant.h"
 #include "values.h"
 #include "quality.h"
+#include "solver.h"
+#include "miscellaneous.h"
 
-class Colony
+class Colony: virtual public Solver
 {
 public:
-    void update_pheromones(Graph graph, std::vector<Node> path);
+    Colony() {};
 
-    void walk_ant(Ant* ant, Graph* graph, double alpha, double beta);
+    void update_pheromones(Problem p, std::vector<Node> path);
 
-    std::vector<Node> do_colony(Graph* graph, Node s, double alpha, double beta);
+    void walk_ant(Ant* ant, Problem* p, double alpha, double beta);
+
+    SolveStatus solve(Problem* p) { return SolveStatus::Unsolved; };
 };
 
 #endif

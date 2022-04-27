@@ -6,14 +6,14 @@
 
 #include <vector>
 
-class solver {
+class Solver {
 protected:
     std::vector<Node> outputPath;
 
 public:
-    solver() {};
+    virtual ~Solver() {};
 
-    virtual SolveStatus solve(Problem& p);
+    virtual SolveStatus solve(Problem* p) = 0;
 
     std::vector<Node> getPath() { return outputPath; };
 };
