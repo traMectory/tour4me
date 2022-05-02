@@ -31,9 +31,11 @@ public:
     void addEdge(Edge* edge);
     void addEdge(long int s_id, long int t_id, double length, double profit);
 
+    
 
     Edge* getEdge(int s_id, int t_id) { return v_edges[m_edges[s_id].at(t_id)]; };
     std::unordered_map<int, int> getEdges(Node node);
+    std::unordered_map<int, int> getEdges(int node_id);
 
     std::vector<Node> getNeighbors(Node node);
 
@@ -44,8 +46,9 @@ public:
     int getNumberOfNodes() { return v_nodes.size(); };
     int getNumberOfEdges() { return v_edges.size(); };
 
-    std::vector<Node> dijkstra(Node source, Node target);
-    double quality(std::vector<Node> path);
+    std::vector<int> dijkstra(int source, int target);
+    double quality(std::vector<int> path);
+    double length(std::vector<int> path);
 };
 
 #endif

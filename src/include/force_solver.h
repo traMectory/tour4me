@@ -6,6 +6,7 @@
 #include "quality.h"
 #include "solver.h"
 #include "miscellaneous.h"
+#include "node.h"
 
 class Force: virtual public Solver
 {

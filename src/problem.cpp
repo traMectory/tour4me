@@ -27,6 +27,7 @@ Problem::Problem(std::string file_name) {
     int n_nodes;
     int n_edges;
 
+    long int g_start = -1;
 
     int c_nodes = 0;
     int c_edges = 0; 
@@ -38,7 +39,7 @@ Problem::Problem(std::string file_name) {
 
         if (type == 'g') {
             std::string t = next_word(&str, ' ');
-            start = std::stol(next_word(&str, ' '));
+            g_start = std::stol(next_word(&str, ' '));
             target_distance = std::stod(next_word(&str, ' '));
             
             center_lat = std::stod(next_word(&str, ' '));
@@ -56,6 +57,11 @@ Problem::Problem(std::string file_name) {
             long int id = std::stol(next_word(&str, ' '));
             double lat = std::stod(next_word(&str, ' '));
             double lon = std::stod(next_word(&str, ' '));
+
+            if (id == g_start) {
+                start = c_nodes;
+                g_start = -2;
+            }
 
             Node node(c_nodes, id, lat, lon);
             graph.v_nodes[c_nodes] = node;
@@ -76,7 +82,8 @@ Problem::Problem(std::string file_name) {
             c_edges ++;
         }
     }
-
+    if (g_start != -2) 
+        throw std::runtime_error("Error: start node was not in the graph");
     if (c_nodes != n_nodes)
         throw std::runtime_error("Error: number of nodes (" + std::to_string(c_nodes) + ") does not match the file preamble (" + std::to_string(n_nodes) + ")");
     if (c_edges != n_edges)
@@ -136,7 +143,7 @@ void Problem::outputToGPX(std::string file_name) {
     outputFile << "    <name>" << file_name << "</name>\n";
     outputFile << "    <trkseg>\n";
 
-    for (auto node = path.begin(); node != std::prev(path.end()); ++node){
+    for (auto node = path.begin(); node != path.end(); ++node){
         outputFile << "      <trkpt lat=\"" << node->lat << "\" lon=\"" << node->lon << "\"></trkpt>\n";
     }
 

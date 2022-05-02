@@ -30,12 +30,12 @@ prefered_tags = ['gravel', 'unpaved', 'compacted', 'track', 'fine_gravel', 'rock
 #radius of the earth
 R = 6371e3
 
-target_distance = 1e3
+target_distance = 10e3
 
 center_lat = 51.4895 
 center_lon = 7.40577
 
-file_name = "1kArbeit"
+file_name = "10kArbeit"
 
 if len(sys.argv) == 4 + 1:
     target_distance = float(sys.argv[1])
@@ -86,14 +86,12 @@ for node in G.nodes:
 for edge in G.edges:
     s, t, _ = edge
     data = G.get_edge_data(s, t)[0]
-    if hasTags(data, prefered_tags):
-        print(data)
     length = data['length']
     if not data['oneway']:
-        node_str += f"e {s} {t} {length} { length if hasTags(data, prefered_tags) else 0 }\n"
+        node_str += f"e {s} {t} {length} { length if hasTags(data, prefered_tags) else length/100 }\n"
 
 
-with open(f"input/{file_name}.txt", "w") as text_file:
+with open(f"/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/{file_name}.txt", "w") as text_file:
     text_file.write(node_str)
 
 

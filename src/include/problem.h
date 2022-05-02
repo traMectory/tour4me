@@ -12,12 +12,14 @@
 
 class Problem {
 protected:
-    long int start;
+    int start;
     std::string graphName;
     double center_lat, center_lon;
 
 public:
     Graph graph;
+
+    Node getStart() { return graph.v_nodes[start]; };
 
     std::vector<Node> path;
 

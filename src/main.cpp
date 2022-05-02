@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     switch(status)
     {
         case SolveStatus::Optimal   : printf("Optimal solution found!\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
-        case SolveStatus::Feasible  : printf("Feasible solution found\n"); break;
+        case SolveStatus::Feasible  : printf("Feasible solution found\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
         case SolveStatus::Unsolved  : printf("Problem was unsolved\n"); break;
     }
 

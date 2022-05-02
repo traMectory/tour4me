@@ -5,6 +5,12 @@ std::unordered_map<int, int> Graph::getEdges(Node node)
     return m_edges[node.id];
 }
 
+std::unordered_map<int, int> Graph::getEdges(int node_id)
+{
+    return m_edges[node_id];
+}
+
+
 void Graph::addEdge(Edge* edge) {
     int l = v_edges.size();
     m_edges[edge->s.id].insert(std::make_pair(edge->t.id, l));
@@ -26,7 +32,7 @@ bool Graph::edgeExists(int s_id, int t_id) {
     return m_edges[s_id].find(t_id) != m_edges[s_id].end();
 }
 
-std::vector<Node> Graph::dijkstra(Node source, Node target)
+std::vector<int> Graph::dijkstra(int source, int target)
 {
     // The output array. dist[i] will hold the shortest
     // distance from src to i
@@ -42,57 +48,78 @@ std::vector<Node> Graph::dijkstra(Node source, Node target)
     std::unordered_map<int, int> parent;
  
     // Distance of source vertex from itself is always 0
-    dist.insert(std::make_pair(source.id, 0.0));
-    queue.push(std::make_pair(0.0, source.id));
+    dist.insert(std::make_pair(source, 0.0));
+    queue.push(std::make_pair(0.0, source));
+
  
-    while (!source.compare(target)) {
+    while (source != target && queue.size() > 0) {
         pi current = queue.top();
         queue.pop();
         
         double distance = current.first;
-        long int currentNode = current.second;
+        int currentNode = current.second;
 
         auto bestKnown = dist.find(currentNode);
         double bestKnownDist = bestKnown->second;
 
+        // int x;
+        // std::cin >> x;
+
+        // printf("%f, %f\n", distance, bestKnownDist);
+
+        // printf("%ld\n", bestKnown);
+
         if (bestKnown == dist.end()) {
             dist.insert(std::make_pair(currentNode, distance));
             bestKnownDist = distance;
-        } else {
-            if (bestKnownDist != distance)
-                continue;
+        }
 
-            for ( auto &o_pair : getEdges(getNode(currentNode)) ) {
-                long int neighborId = o_pair.first;
-                Edge* edge = v_edges[o_pair.second];
+        if (bestKnownDist != distance)
+            continue;
 
-                double newDistance = bestKnownDist + edge->cost;
+
+        for ( auto &o_pair : getEdges(v_nodes[currentNode]) ) {
+            int neighborId = o_pair.first;
+
+            if (dist.find(neighborId) == dist.end())
+                dist.insert(std::make_pair(neighborId, 2147483647));
+
+            Edge* edge = v_edges[o_pair.second];
+
+            double newDistance = bestKnownDist + edge->cost;
+
+            if (newDistance < dist[neighborId])
+            {
                 queue.push(std::make_pair(newDistance, neighborId));
+                dist[neighborId] = newDistance;
+                parent[neighborId] = currentNode;
             }
         }
     }
+
     
     //construct path 
-    Node current = target;
-    std::vector<Node> path;
+    int current = target;
+    std::vector<int> path;
     path.insert(path.begin(), current);
 
-    while (!current.compare(source)) {
-        current = v_nodes[parent[current.id]];
+    while (current != source) {
+        current = parent[current];
         path.insert(path.begin(), current);
     }
 
     return path;
 }
 
-double Graph::quality(std::vector<Node> path) {
+double Graph::quality(std::vector<int> path) {
+    // printf("%d, %d", 1, 1);
     std::set<Edge*> edgSet;
 
     double quality = 0.0;
 
     for (int i = 0; i < path.size() - 1; i++)
     {
-        Edge* edge = getEdge(path[i].id, path[i+1].id);
+        Edge* edge = getEdge(path[i], path[i+1]);
         
         if (!edgSet.contains(edge)) {
             quality += edge->profit;
@@ -101,4 +128,19 @@ double Graph::quality(std::vector<Node> path) {
     }
 
     return quality;
+}
+
+double Graph::length(std::vector<int> path) {
+    std::set<Edge*> edgSet;
+
+    double length = 0.0;
+
+    for (int i = 0; i < path.size() - 1; i++)
+    {
+        Edge* edge = getEdge(path[i], path[i+1]);
+        
+        length += edge->cost;
+    }
+
+    return length;
 }
