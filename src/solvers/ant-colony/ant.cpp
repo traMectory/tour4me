@@ -71,23 +71,23 @@ Edge* Ant::chooseEdge(std::unordered_map<long int, Edge*> o_edges)
 
 void Ant::moveToNext(Graph* graph)
 {
-    std::unordered_map<long int, Edge*> outgoing_edges = graph->getEdges(m_loc);
+    // std::unordered_map<int, int> outgoing_edges = graph->getEdges(m_loc);
 
-    Edge* next_edge = chooseEdge(outgoing_edges);
+    // Edge* next_edge = chooseEdge(outgoing_edges);
 
-    Node next_loc = next_edge->s.compare(m_loc) ? next_edge->t : next_edge->s;
+    // Node next_loc = next_edge->s.compare(m_loc) ? next_edge->t : next_edge->s;
 
-    if (m_visited.count(next_loc.id) == 0)
-        n_unqiue += 1;
+    // if (m_visited.count(next_loc.id) == 0)
+    //     n_unqiue += 1;
 
-    Edge* edge = graph->getEdge(m_loc.id, next_loc.id);
+    // Edge* edge = graph->getEdge(m_loc.id, next_loc.id);
 
-    m_visited_edges.insert(edge);
+    // m_visited_edges.insert(edge);
 
-    m_loc = next_loc;
-    m_path.push_back(m_loc);
-    m_visited.insert(m_loc.id);
-    m_l_path += next_edge->cost;
+    // m_loc = next_loc;
+    // m_path.push_back(m_loc);
+    // m_visited.insert(m_loc.id);
+    // m_l_path += next_edge->cost;
 }
 
 int Ant::atStart()

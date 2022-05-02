@@ -12,17 +12,20 @@
 
 class Problem {
 protected:
-    Graph graph;
     long int start;
     std::string graphName;
     double center_lat, center_lon;
-    double target_distance;
 
 public:
-    Problem(std::vector<Node> nodes);
+    Graph graph;
+
+    std::vector<Node> path;
+
+    double target_distance;
     Problem(std::string file_name);
 
-    void outputPath(std::vector<Node> path, std::string file_name);
+    void outputPath(std::string file_name);
+    void outputToGPX(std::string file_name);
 
     int getNumberOfNodes() { return graph.getNumberOfNodes(); };
     int getNumberOfEdges() { return graph.getNumberOfEdges(); };

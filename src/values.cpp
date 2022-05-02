@@ -1,6 +1,6 @@
 #include "values.h"
 
-// double quality(Graph* graph, Ant* ant) {
+// double quality(Graph* graph, std::vector path) {
 //     double quality = 1;
 
 //     double length = ant->getLength();

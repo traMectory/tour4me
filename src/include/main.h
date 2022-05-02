@@ -7,5 +7,10 @@
 #include "miscellaneous.h"
 #include "problem.h"
 
+#include "aop_ilp_solver.h"
+#include "force_solver.h"
+
 std::string algoType;
 std::string filename;
+
+bool gpx = false;

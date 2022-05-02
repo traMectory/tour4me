@@ -1,19 +1,40 @@
 file (GLOB_RECURSE sources *.h *.cpp *.hpp *.tpp)
 
+option(CXX "enable C++ compilation" ON)
+
+if(CXX)
+  enable_language(CXX)
+endif()
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+find_package(GUROBI REQUIRED)
+
+include_directories(${GUROBI_INCLUDE_DIRS})
+
+
 include_directories(include)
-#set(sources geoWordle.cpp problem.cpp problem_ILP.cpp miscellaneous.cpp problem_CELL.cpp )
 add_executable(tourGenerator ${sources})
 include_directories(solvers)
+include_directories(solvers/ILP)
+include_directories(solvers/greedy)
 include_directories(solvers/ant-colony)
 include_directories(tools)
 
-if (MSVC)
-	set(CMAKE_CXX_FLAGS_RELEASE "/O2 /DNDEBUG")
-else ()
-	#set(CMAKE_CXX_FLAGS "-Wextra")
-	set(CMAKE_CXX_FLAGS_DEBUG "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-	target_compile_features(tourGenerator PUBLIC cxx_std_17)
-	target_link_libraries(tourGenerator PUBLIC stdc++fs)
-	
+
+if(CXX)
+  set(CMAKE_CXX_STANDARD 20)
+  target_link_libraries(${CMAKE_PROJECT_NAME} optimized ${GUROBI_CXX_LIBRARY}
+                        debug ${GUROBI_CXX_DEBUG_LIBRARY})
+endif()
+
+target_link_libraries(${CMAKE_PROJECT_NAME} ${GUROBI_LIBRARY})
+
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
+  include(FeatureSummary)
+  feature_summary(WHAT ALL)
 endif()

@@ -3,18 +3,39 @@ import math
 
 import sys
 
+def hasTags(data, tags):
+    for key, value in data.items():
+        # if key == "surface":
+        #     print(key, value)
+        if key in tags:
+            return True
+        if isinstance(value, list):
+            for s in value:
+                if s in tags:
+                    return True
+        if isinstance(value, dict):
+            if hasTags(value, tags):
+                return True
+        if isinstance(value, str):
+            if value in tags:
+                return True
+    return False
+
 useful_tags_way = ['oneway', 'lanes', 'name', 'highway', 'maxspeed', 'width', 'est_width','surface']
 ox.config(use_cache=True, log_console=False, useful_tags_way=useful_tags_way)
+
+prefered_tags = ['gravel', 'unpaved', 'compacted', 'track', 'fine_gravel', 'rock', 'pebblestone']
+
 
 #radius of the earth
 R = 6371e3
 
-target_distance = 100e3
+target_distance = 1e3
 
 center_lat = 51.4895 
 center_lon = 7.40577
 
-file_name = "100kArbeit"
+file_name = "1kArbeit"
 
 if len(sys.argv) == 4 + 1:
     target_distance = float(sys.argv[1])
@@ -65,9 +86,11 @@ for node in G.nodes:
 for edge in G.edges:
     s, t, _ = edge
     data = G.get_edge_data(s, t)[0]
+    if hasTags(data, prefered_tags):
+        print(data)
     length = data['length']
     if not data['oneway']:
-        node_str += f"e {s} {t} {length} {1}\n"
+        node_str += f"e {s} {t} {length} { length if hasTags(data, prefered_tags) else 0 }\n"
 
 
 with open(f"input/{file_name}.txt", "w") as text_file:

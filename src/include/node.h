@@ -8,12 +8,14 @@ class Node
 {
 public:
     double lat, lon;
-    long int id;
+    long int g_id;
+    int id;
     
-    Node(long int n_id, double n_lat, double n_lon) {
+    Node(int n_id, long int n_g_id, double n_lat, double n_lon) {
         lat = n_lat;
         lon = n_lon;
         id = n_id;
+        g_id = n_g_id;
     }
 
     Node() = default;
