@@ -1,6 +1,6 @@
-#include "ant_colony.h"
+#include "simple_colony.h"
 
-Colony::Ant::Ant(Node loc, Colony* c) {
+S_Colony::Ant::Ant(Node loc, S_Colony* c) {
     col = c;
     s = loc;
     m_loc = loc;
@@ -8,7 +8,17 @@ Colony::Ant::Ant(Node loc, Colony* c) {
     m_visited.insert(loc.id);
 }
 
-Edge* Colony::Ant::chooseEdge(Problem* P, std::unordered_map<int, int> o_edges)
+/*
+ * Make sure to first update the area before moving the ant!
+ */
+void S_Colony::Ant::updateArea(Edge *edge) {
+    Node v1 = m_loc.id == edge->s.id ? edge->s : edge->t;
+    Node v2 = m_loc.id == edge->s.id ? edge->t : edge->s;
+
+    shoelace_sum += (v2.lat - v1.lat) * (v2.lon + v1.lon);
+}
+
+Edge* S_Colony::Ant::chooseEdge(Problem* P, std::unordered_map<int, int> o_edges)
 {
     double sum_prob = 0;
     std::vector<double> probs;
@@ -25,36 +35,24 @@ Edge* Colony::Ant::chooseEdge(Problem* P, std::unordered_map<int, int> o_edges)
 
         int neigh = o_pair.first;
 
-        // printf("loc: %ld, neigh: %ld, back: %ld\n", m_loc.id, neigh.id, m_path.end()[-2].id);
-
         double feasible = o_edge->profit;
-
-        // if ( int.compare(s) && m_path.size() > 2 ) { feasible *= 1 + V_AVOID_GOING_BACK; }
+        
+        // feasible *= 1 + (col->V_GO_TO_S_AT_END)*((1-m_loc.vec_angle(P->graph.v_nodes[neigh], s)) * (m_l_path / P->target_distance));
 
         if ( m_visited.count(neigh) == 0 )
             feasible *= 1 + col->V_AVOID_VISITNG_NODE_TWICE; 
 
-        feasible *= 1 + m_loc.vec_angle(P->graph.v_nodes[neigh], m_path.end()[-2]) * col->V_AVOID_SHARP_TURNS;
-
-        // printf("angle: %f, ", m_loc.vec_angle(neigh, m_path.end()[-2]));
-        // printf("neigh: %ld, back: %ld\n", neigh.id, m_path.end()[-2].id);
-        // printf("l_lon : %f, l_lat : %f, n_lon : %f, n_lat : %f, p_lon : %f, p_lat : %f, ", m_loc.lon, m_loc.lat, neigh.lon, neigh.lat, m_path.end()[-2].lon, m_path.end()[-2].lat);
-        
-        feasible *= 1 + (col->V_GO_TO_S_AT_END)*((1-m_loc.vec_angle(P->graph.v_nodes[neigh], s)) * (m_l_path / P->target_distance));
-
         double prob = std::pow(o_edge->pheromone, 1 + col->V_AlPHA) * std::pow(feasible, 1 + col->V_BETA);
 
-        // printf("Currently at %ld, probabilty for going to %ld at %f\n", m_loc.id, neigh.id, prob);
         sum_prob += prob;
         probs.push_back(prob);
         prob_edges.push_back(o_edge);
     }
 
-    std::uniform_real_distribution<> distrib(0, sum_prob);
 
-    double r = distrib(col->gen);
+    double r = sum_prob * col->dis(col->gen);
 
-    // printf("sum_prob: %f, random: %d, r: %f\n",sum_prob, random, r);
+    // printf("sum_prob: %f, r: %f\n",sum_prob, r);
 
     int i = 0;
     sum_prob = probs[i];
@@ -71,18 +69,16 @@ Edge* Colony::Ant::chooseEdge(Problem* P, std::unordered_map<int, int> o_edges)
     return prob_edges[i];
 }
 
-void Colony::Ant::moveToNext(Problem* P)
+void S_Colony::Ant::moveToNext(Problem* P)
 {
     std::unordered_map<int, int> outgoing_edges = P->graph.getEdges(m_loc);
 
     Edge* next_edge = chooseEdge(P, outgoing_edges);
 
-    updateArea(P, next_edge);
-
     Node next_loc = next_edge->s.compare(m_loc) ? next_edge->t : next_edge->s;
 
-    if (m_visited.count(next_loc.id) == 0)
-        n_unqiue += 1;
+    if (m_visited_edges.count(next_edge) == 0)
+        // n_unqiue += 1;
         m_p_path += next_edge->profit;
 
     m_loc = next_loc;
@@ -93,12 +89,12 @@ void Colony::Ant::moveToNext(Problem* P)
     m_visited_edges.insert(next_edge);
 }
 
-int Colony::Ant::atStart()
+int S_Colony::Ant::atStart()
 {
     return m_loc.compare(s);
 }
 
-double Colony::Ant::quality(Problem* P) {
+double S_Colony::Ant::quality(Problem* P) {
     double length = getLength();
     double profit = getProfit();
 

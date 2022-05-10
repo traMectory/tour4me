@@ -1,5 +1,4 @@
-#ifndef ANT_COLONY_H
-#define ANT_COLONY_H
+#pragma once
 
 #include "graph.h"
 #include "edge.h"
@@ -7,9 +6,8 @@
 #include "solver.h"
 #include "miscellaneous.h"
 #include <random>
-#include <chrono>
 
-class Colony: virtual public Solver
+class S_Colony: virtual public Solver
 {
 protected:
 
@@ -22,12 +20,13 @@ protected:
         Node m_loc, s;
         double m_l_path = 0;
         double m_p_path = 0;
-        Colony* col;
+        double shoelace_sum = 0;
+        S_Colony* col;
         int n_unqiue = 0;
 
         Edge* chooseEdge(Problem* P, std::unordered_map<int, int> o_edges);
     public:
-        Ant(Node lock, Colony* c);
+        Ant(Node lock, S_Colony* c);
         Ant() = default;
 
         void moveToNext(Problem* P);
@@ -41,6 +40,9 @@ protected:
 
         int getCount(Edge* edge) { return m_visited_edges.count(edge); };
 
+        void updateArea(Edge* edge);
+        double getArea() { return std::abs(0.5 * (shoelace_sum + )};
+
         void printPath();
         double quality(Problem* P);
     };
@@ -48,36 +50,26 @@ protected:
    
 
 public:
-    double RHO = 0.5;
+    double RHO = 0;
 
     int N_ANTS = 10;
-    int N_GENERATIONS = 20;
+    int N_GENERATIONS = 3;
 
-    double V_AlPHA = 10;
-    double V_BETA = 10;
+    double V_AlPHA = 0;
+    double V_BETA = 0;
 
-    double V_AVOID_VISITNG_NODE_TWICE = 3;
+    double V_AVOID_VISITNG_NODE_TWICE = 1000000;
     double V_AVOID_SHARP_TURNS = 10;
     double V_GO_TO_S_AT_END = 10;
 
     double V_BEST_ANT_PROFIT = 10;
 
     double quality;
-    std::random_device rd;
-    std::mt19937::result_type seed = rd() ^ (
-            (std::mt19937::result_type)
-            std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch()
-                ).count() +
-            (std::mt19937::result_type)
-            std::chrono::duration_cast<std::chrono::microseconds>(
-                std::chrono::high_resolution_clock::now().time_since_epoch()
-                ).count() );
+    std::random_device rd;  // Will be used to obtain a seed for the random number engine
+    std::mt19937 gen; // Standard mersenne_twister_engine seeded with rd()
+    std::uniform_real_distribution<> dis;
 
-    std::mt19937 gen;
-    std::uniform_real_distribution<> distrib;
-
-    Colony() { gen = std::mt19937(seed); distrib = std::uniform_real_distribution<>((0, 1)); };
+    S_Colony() { gen = std::mt19937(rd()); dis = std::uniform_real_distribution<>(0.0, 1.0); };
 
     void updatePheromones(Problem* P, Ant* ant, double quality);
 
@@ -86,5 +78,3 @@ public:
     SolveStatus solve(Problem* p);
 
 };
-
-#endif

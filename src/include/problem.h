@@ -22,6 +22,7 @@ public:
     Node getStart() { return graph.v_nodes[start]; };
 
     std::vector<Node> path;
+    double quality = -1;
 
     double target_distance;
     Problem(std::string file_name);

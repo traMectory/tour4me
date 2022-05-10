@@ -78,8 +78,10 @@ Problem::Problem(std::string file_name) {
             double cost = std::stod(next_word(&str, ' '));
             double profit = std::stod(next_word(&str, ' '));
 
+            // if (v_id != w_id) {
             graph.addEdge(v_id, w_id, cost, profit);
             c_edges ++;
+            // }
         }
     }
     if (g_start != -2) 

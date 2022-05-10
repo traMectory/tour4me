@@ -1,10 +1,10 @@
 // TODO needs to be refractored completely to work with new hiearcy
 
-#include "ant_colony.h"
+#include "simple_colony.h"
 
-void Colony::updatePheromones(Problem* P, Ant* ant, double quality) {
+void S_Colony::updatePheromones(Problem* P, Ant* ant, double quality) {
     for (Edge* e : P->graph.v_edges) {
-        e->pheromone *= 1-RHO;
+        e->pheromone = 1;
     }
 
     if (quality > 1 && ant->atStart()) {
@@ -20,15 +20,15 @@ void Colony::updatePheromones(Problem* P, Ant* ant, double quality) {
             
             // printf("    edgecoutnt: %d\n", ant->getCount(edge));
             if (ant->getCount(edge) == 1) {
-                edge->pheromone *= (1+quality/P->target_distance);
+            
+                edge->pheromone = 10000;
 
-                // printf("phe: %f\n", edge->pheromone);
             }
         }
     }
 }
 
-void Colony::walk_ant(Ant* ant, Problem* P)
+void S_Colony::walk_ant(Ant* ant, Problem* P)
 {    
     ant->moveToNext(P);
     
@@ -40,12 +40,19 @@ void Colony::walk_ant(Ant* ant, Problem* P)
 
 
 
-SolveStatus Colony::solve(Problem* P)
+SolveStatus S_Colony::solve(Problem* P)
 {
+    Ant* bestAnt;
+
+    
+
     for (int j = 0; j < N_GENERATIONS; j++)
     {
-
-        Ant* bestAnt;
+        for (Edge* e : P->graph.v_edges) {
+            if (e->pheromone > 1)
+                printf("phe: %f\n", e->pheromone);
+        }
+        bestAnt = nullptr;
 
         double bestQuality = -1;
 
@@ -58,44 +65,50 @@ SolveStatus Colony::solve(Problem* P)
             walk_ant(ant, P);
 
             // printf("%f\n", quality(graph, &ant));
-            double antQuality = ant->quality(P);
+            double antQuality = ant->getProfit();
 
             // if (ant.atStart())
             //     printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
             // else
             //     printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
 
+            printf("  - ant %d, atStart %d, antQau %f, bestQua %f\n", i, ant->atStart(), antQuality, bestQuality);
+
             if (ant->atStart() && antQuality > bestQuality) {
                 bestAnt = ant;
                 bestQuality = antQuality;
-                
-                double uniqueness = (double) ant->getNUnique() / (double) ant->getPath().size();
                 // printf("Gen %d, Quality of path: %f, length: %f, uniqueness: %f \n", j, antQuality, ant->getLength(), uniqueness);
             }
 
 
-            if (ant->atStart() && antQuality > P->quality) {
-                std::cout<<antQuality<<std::endl;
-                P->path = ant->getPath();
-                P->quality = antQuality;
-            }
+            // if (ant->atStart() && antQuality > P->quality) {
+            //     // std::cout<<antQuality<<std::endl;
+            //     P->path = ant->getPath();
+            //     P->quality = antQuality;
+            // }
         }
+
         if (bestQuality != -1)
             updatePheromones(P, bestAnt, V_BEST_ANT_PROFIT);
+
+        
         // bestAnt.printPath();
         // printf("gen %d\n", j);
+
+        P->path = bestAnt->getPath();
         for (int i = 0; i < N_ANTS; i++)
         {
-            double antQuality = ants[i]->quality(P);
-            // printf("  ant %d: %f, %d\n", i, antQuality, ants[i]->atStart());
-            updatePheromones(P, ants[i], antQuality);
+            // double antQuality = ants[i]->quality(P);
+            // // printf("  ant %d: %f, %d\n", i, antQuality, ants[i]->atStart());
+            // updatePheromones(P, ants[i], antQuality);
 
             delete ants[i];
         }
 
-        
+    
         // bestAnt->printPath();
     }
+
     return SolveStatus::Feasible;
 }
 

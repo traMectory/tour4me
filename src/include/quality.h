@@ -2,9 +2,10 @@
 #define QUALITY_H
 
 #include "graph.h"
-#include "ant.h"
+#include <vector>
+#include "problem.h"
 
-double quality(Ant* ant);
-void updatePheromones(Graph* graph, Ant* ant, double quality);
+// double quality(Problem* P, Ant* ant);
+// void updatePheromones(Graph* graph, Ant* ant, double quality);
 
 #endif

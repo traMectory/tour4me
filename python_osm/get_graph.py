@@ -30,12 +30,17 @@ prefered_tags = ['gravel', 'unpaved', 'compacted', 'track', 'fine_gravel', 'rock
 #radius of the earth
 R = 6371e3
 
-target_distance = 10e3
+target_distance = 100e3
 
+# Work
 center_lat = 51.4895 
 center_lon = 7.40577
 
-file_name = "10kArbeit"
+# Home
+# center_lat = 51.481190
+# center_lon = 7.431180
+
+file_name = "100kArbeit"
 
 if len(sys.argv) == 4 + 1:
     target_distance = float(sys.argv[1])
@@ -90,6 +95,7 @@ for edge in G.edges:
     if not data['oneway']:
         node_str += f"e {s} {t} {length} { length if hasTags(data, prefered_tags) else length/100 }\n"
 
+ox.plot_graph(G, node_size=0)
 
 with open(f"/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/{file_name}.txt", "w") as text_file:
     text_file.write(node_str)
