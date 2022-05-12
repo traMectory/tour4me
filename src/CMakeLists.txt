@@ -16,6 +16,10 @@ find_package(GUROBI REQUIRED)
 
 include_directories(${GUROBI_INCLUDE_DIRS})
 
+find_package(LIBHTTPSERVER REQUIRED)
+
+include_directories(${LIBHTTPSERVER_INCLUDE_DIRS})
+
 
 include_directories(include)
 add_executable(tourGenerator ${sources})
@@ -33,6 +37,7 @@ if(CXX)
 endif()
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ${GUROBI_LIBRARY})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBHTTPSERVER_LIBRARIES})
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
   include(FeatureSummary)

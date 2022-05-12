@@ -20,9 +20,11 @@ public:
 
     Node() = default;
 
+    double distance(double s_lon, double s_lat);
     double vec_angle(Node n1, Node n2);
 
     int compare(Node no);
+    int isRight(Node l1, Node l2);
 };
 
 #endif

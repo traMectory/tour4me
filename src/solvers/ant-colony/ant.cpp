@@ -77,7 +77,7 @@ void Colony::Ant::moveToNext(Problem* P)
 
     Edge* next_edge = chooseEdge(P, outgoing_edges);
 
-    updateArea(P, next_edge);
+    // updateArea(P, next_edge);
 
     Node next_loc = next_edge->s.compare(m_loc) ? next_edge->t : next_edge->s;
 

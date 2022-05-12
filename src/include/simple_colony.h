@@ -41,7 +41,7 @@ protected:
         int getCount(Edge* edge) { return m_visited_edges.count(edge); };
 
         void updateArea(Edge* edge);
-        double getArea() { return std::abs(0.5 * (shoelace_sum + )};
+        double getArea() { return std::abs(0.5 * (shoelace_sum)); };
 
         void printPath();
         double quality(Problem* P);

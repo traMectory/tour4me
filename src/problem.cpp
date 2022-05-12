@@ -153,3 +153,18 @@ void Problem::outputToGPX(std::string file_name) {
     outputFile << "  </trk>\n";
     outputFile << "</gpx>";
 }
+
+std::string Problem::outputToString() {
+
+    std::string outputString = "{\n    \"path\": [\n";
+
+    for (auto node = path.begin(); node != std::prev(path.end()); ++node){
+        outputString += "        [" + std::to_string(node->lat) + "," + std::to_string(node->lon) + "], \n";
+    }
+
+    outputString += "        [" + std::to_string(path.begin()->lat) + "," + std::to_string(path.begin()->lon) + "] \n";
+
+    outputString += "    ]\n}";
+
+    return outputString;
+}

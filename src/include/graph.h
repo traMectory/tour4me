@@ -12,7 +12,7 @@
 #include <queue>
 #include <set>
 
-typedef std::pair<double, int> pi;
+typedef std::pair<double, std::pair<int, double>> pi;
 
 class Graph
 {  

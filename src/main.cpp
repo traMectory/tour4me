@@ -1,170 +1,140 @@
 #include "main.h"
 #include <random>
+#include <httpserver.hpp>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <string>
+#include <fstream>
 
-int main(int argc, char* argv[]) 
-{
-    parseOptions(argc, argv);
-    
+using namespace httpserver;
 
-    Problem problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/" + filename + ".txt");
-    // // Graph graph = getSmallGraph();
-    printf("Nodes: %d, Edges: %d\n", problem.getNumberOfNodes(), problem.getNumberOfEdges());
+class url_args_resource : public http_resource {
+public:
+    const std::shared_ptr<http_response> render_GET(const http_request& req) {
+        double lat;
+        double lon;
+        double distance;
 
-    S_Colony solver;
-    
-    SolveStatus status = solver.solve(&problem);
-    double baseLine = problem.quality;
-    bool update = true;
+        try
+        {
+            lat = std::stod(req.get_arg("lat"));
+            lon = std::stod(req.get_arg("lon"));
+            distance = std::stod(req.get_arg("dis"));
+            printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
+        }
+        catch(const std::exception& e)
+        {      
+            return std::shared_ptr<string_response>(new string_response("Bad input", 400, "text/plain"));
+        }
+        
+        Problem problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kArbeit.txt");
 
-    // printf(" ------ qual %f, rho %f, alp %f, bet %f, twi %f, sha %f, end %f, pro %f\n ", baseLine, solver.RHO, solver.V_AlPHA, solver.V_BETA, solver.V_AVOID_VISITNG_NODE_TWICE, solver.V_AVOID_SHARP_TURNS, solver.V_GO_TO_S_AT_END, solver.V_BEST_ANT_PROFIT);
+        double best_distance = 1000000000000;
+        Node start;
 
-    // while (update) {
-    //     update = false;
-
-
-    //     printf("%f, %f, %d\n", solver.RHO, problem.quality, rand());
-    //     solver.RHO -= 0.5;
-    //     printf("%f, %f, %d\n", solver.RHO, problem.quality, rand());
-    //     status = solver.solve(&problem);
-    //     if (problem.quality > baseLine) {
-    //         baseLine = problem.quality;
-    //         update = true;
-    //     } else {
-    //         solver.RHO += 1.0;
-    //         printf("%f, %f, %d\n", solver.RHO, problem.quality, rand());
-    //         status = solver.solve(&problem);
-
-    //         if (problem.quality > baseLine) {
-    //             printf("%f, %f, %d\n", solver.RHO, problem.quality, rand());
-    //             update = true;
-    //         } else {
-    //             solver.RHO -= 0.5;
-    //             printf("%f\n", solver.RHO);
-    //         }
-    //     }
-
-    //     printf("-");
-
-    //     solver.V_AlPHA -= 0.1;
-    //     status = solver.solve(&problem);
-    //     if (problem.quality > baseLine) {
-    //         baseLine = problem.quality;
-    //         update = true;
-    //     } else {
-    //         solver.V_AlPHA += 0.2;
-    //         status = solver.solve(&problem);
-
-    //         if (problem.quality > baseLine) {
-    //             baseLine = problem.quality;
-    //             update = true;
-    //         } else {
-    //             solver.V_AlPHA -= 0.1;
-    //         }
-    //     }
-    //     printf("-");
-
-    //     solver.V_BETA -= 0.1;
-    //     status = solver.solve(&problem);
-    //     if (problem.quality > baseLine) {
-    //         baseLine = problem.quality;
-    //         update = true;
-    //     } else {
-    //         solver.V_BETA += 0.2;
-    //         status = solver.solve(&problem);
-
-    //         if (problem.quality > baseLine) {
-    //             baseLine = problem.quality;
-    //             update = true;
-    //         } else {
-    //             solver.V_BETA -= 0.1;
-    //         }
-    //     }
-    //     printf("-");
-
-    //     solver.V_AVOID_VISITNG_NODE_TWICE -= 1;
-    //     status = solver.solve(&problem);
-    //     if (problem.quality > baseLine) {
-    //         baseLine = problem.quality;
-    //         update = true;
-    //     } else {
-    //         solver.V_AVOID_VISITNG_NODE_TWICE += 2;
-    //         status = solver.solve(&problem);
-
-    //         if (problem.quality > baseLine) {
-    //             baseLine = problem.quality;
-    //             update = true;
-    //         } else {
-    //             solver.V_AVOID_VISITNG_NODE_TWICE -= 1;
-    //         }
-    //     }
-    //     printf("-");
-
-    //     solver.V_AVOID_SHARP_TURNS -= 1;
-    //     status = solver.solve(&problem);
-    //     if (problem.quality > baseLine) {
-    //         baseLine = problem.quality;
-    //         update = true;
-    //     } else {
-    //         solver.V_AVOID_SHARP_TURNS += 2;
-    //         status = solver.solve(&problem);
-
-    //         if (problem.quality > baseLine) {
-    //             baseLine = problem.quality;
-    //             update = true;
-    //         } else {
-    //             solver.V_AVOID_SHARP_TURNS -= 1;
-    //         }
-    //     }
-    //     printf("-");
-
-    //     solver.V_GO_TO_S_AT_END -= 1;
-    //     status = solver.solve(&problem);
-    //     if (problem.quality > baseLine) {
-    //         baseLine = problem.quality;
-    //         update = true;
-    //     } else {
-    //         solver.V_GO_TO_S_AT_END += 2;
-    //         status = solver.solve(&problem);
-
-    //         if (problem.quality > baseLine) {
-    //             baseLine = problem.quality;
-    //             update = true;
-    //         } else {
-    //             solver.V_GO_TO_S_AT_END -= 1;
-    //         }
-    //     }
-    //     printf("-");
-
-    //     solver.V_BEST_ANT_PROFIT -= 1;
-    //     status = solver.solve(&problem);
-    //     if (problem.quality > baseLine) {
-    //         baseLine = problem.quality;
-    //         update = true;
-    //     } else {
-    //         solver.V_BEST_ANT_PROFIT += 2;
-    //         status = solver.solve(&problem);
-
-    //         if (problem.quality > baseLine) {
-    //             baseLine = problem.quality;
-    //             update = true;
-    //         } else {
-    //             solver.V_BEST_ANT_PROFIT -= 1;
-    //         }
-    //     }
-
-    //     printf(" qual %f, rho %f, alp %f, bet %f, twi %f, sha %f, end %f, pro %f\n ", baseLine, solver.RHO, solver.V_AlPHA, solver.V_BETA, solver.V_AVOID_VISITNG_NODE_TWICE, solver.V_AVOID_SHARP_TURNS, solver.V_GO_TO_S_AT_END, solver.V_BEST_ANT_PROFIT);
-    // }
+        for (Node v : problem.graph.v_nodes) {
+            double dis = v.distance(lat, lon);
+            // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
+            if (dis < best_distance) {
 
 
+                best_distance = dis;
+                start = v;
+            }
+        }
 
-    switch(status)
-    {
-        case SolveStatus::Optimal   : printf("Optimal solution found!\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
-        case SolveStatus::Feasible  : printf("Feasible solution found\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
-        case SolveStatus::Unsolved  : printf("Problem was unsolved\n"); break;
+        problem.start = start.id;
+        problem.center_lon = start.lon;
+        problem.center_lat = start.lat;
+
+        problem.target_distance = distance;
+
+        Jogger solver;
+        SolveStatus status = solver.solve(&problem);
+
+        switch(status)
+        {
+            case SolveStatus::Optimal: 
+                printf("Optimal solution found!\n"); 
+                return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
+                if(gpx) {problem.outputToGPX(filename);} 
+                break;
+            case SolveStatus::Feasible: 
+                printf("Feasible solution found\n"); 
+                return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
+                if(gpx) {problem.outputToGPX(filename);} 
+                break;
+            case SolveStatus::Unsolved: 
+                printf("Problem was unsolved\n"); 
+                return std::shared_ptr<string_response>(new string_response("Not solved", 400, "text/plain"));
+                break;
+        }
+        return std::shared_ptr<string_response>(new string_response("Not solved", 400, "text/plain"));
+
+    }
+};
+
+inline bool exists_test0 (const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
+
+class file_response_resource : public http_resource {
+public:
+    const std::shared_ptr<http_response> render_GET(const http_request& req) {
+        printf("test: %d\n", exists_test0("/home/hagedoorn/Documents/TUD/Code/AOPcpp/web/main.html"));
+        return std::shared_ptr<file_response>(new file_response("/home/hagedoorn/Documents/TUD/Code/AOPcpp/web/main.html", 200, "text/html"));
+    }
+};
+
+int main(int argc, char** argv) {
+        webserver ws = create_webserver(8080);
+
+        url_args_resource uar;
+        ws.register_resource("/tour", &uar);
+
+
+        file_response_resource hwr;
+        ws.register_resource("/index.html", &hwr);
+
+        ws.start(true);
+        
+        return 0;
     }
 
-    // problem.outputPath(path, filename);
+
+
+// int main(int argc, char* argv[]) 
+// {
+//     parseOptions(argc, argv);
+
+
+
+//     Problem problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/" + filename + ".txt");
+//     // // Graph graph = getSmallGraph();
+//     printf("Nodes: %d, Edges: %d\n", problem.getNumberOfNodes(), problem.getNumberOfEdges());
+
+//     S_Colony solver;
     
-    return 0;
-}
+//     SolveStatus status = solver.solve(&problem);
+//     double baseLine = problem.quality;
+//     bool update = true;
+
+
+
+
+
+   
+    
+
+//     switch(status)
+//     {
+//         case SolveStatus::Optimal   : printf("Optimal solution found!\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
+//         case SolveStatus::Feasible  : printf("Feasible solution found\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
+//         case SolveStatus::Unsolved  : printf("Problem was unsolved\n"); break;
+//     }
+
+//     // problem.outputPath(path, filename);
+    
+//     return 0;
+// }

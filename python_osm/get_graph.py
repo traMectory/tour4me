@@ -65,6 +65,8 @@ min_lat *= 180 / math.pi
 max_lon *= 180 / math.pi
 min_lon *= 180 / math.pi
 
+print(min_lat, max_lat, min_lon, max_lon)
+
 center_lat *= 180 / math.pi
 center_lon *= 180 / math.pi
 

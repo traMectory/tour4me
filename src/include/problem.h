@@ -12,11 +12,11 @@
 
 class Problem {
 protected:
-    int start;
     std::string graphName;
-    double center_lat, center_lon;
 
 public:
+    int start;
+    double center_lat, center_lon;
     Graph graph;
 
     Node getStart() { return graph.v_nodes[start]; };
@@ -29,6 +29,7 @@ public:
 
     void outputPath(std::string file_name);
     void outputToGPX(std::string file_name);
+    std::string outputToString();
 
     int getNumberOfNodes() { return graph.getNumberOfNodes(); };
     int getNumberOfEdges() { return graph.getNumberOfEdges(); };

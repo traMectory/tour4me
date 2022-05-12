@@ -50,3 +50,5 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GUROBI DEFAULT_MSG GUROBI_LIBRARY
                                   GUROBI_INCLUDE_DIRS)
+
+message("gurobi")
