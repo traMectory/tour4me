@@ -18,6 +18,8 @@ class Graph
 {  
 
 public:    
+    double max_lat, min_lat, max_lon, min_lon;
+
     std::vector<Node> v_nodes;
     std::vector<Edge*> v_edges;
     
@@ -29,7 +31,7 @@ public:
     
 
     void addEdge(Edge* edge);
-    void addEdge(long int s_id, long int t_id, double length, double profit);
+    void addEdge(long int s_id, long int t_id, double length);
 
     
 

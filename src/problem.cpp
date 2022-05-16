@@ -17,6 +17,10 @@ std::string next_word(std::string* line, char delimiter) {
     return word;
 }
 
+bool has_word(std::string* line, char delimiter) {
+    return line->length() != 0;
+}
+
 Problem::Problem(std::string file_name) {
     graph = Graph();
 
@@ -26,8 +30,6 @@ Problem::Problem(std::string file_name) {
     std::string str; 
     int n_nodes;
     int n_edges;
-
-    long int g_start = -1;
 
     int c_nodes = 0;
     int c_edges = 0; 
@@ -39,8 +41,10 @@ Problem::Problem(std::string file_name) {
 
         if (type == 'g') {
             std::string t = next_word(&str, ' ');
-            g_start = std::stol(next_word(&str, ' '));
-            target_distance = std::stod(next_word(&str, ' '));
+            graph.max_lat = std::stod(next_word(&str, ' '));
+            graph.min_lat = std::stod(next_word(&str, ' '));
+            graph.max_lon = std::stod(next_word(&str, ' '));
+            graph.min_lon = std::stod(next_word(&str, ' '));
             
             center_lat = std::stod(next_word(&str, ' '));
             center_lon = std::stod(next_word(&str, ' '));
@@ -58,11 +62,6 @@ Problem::Problem(std::string file_name) {
             double lat = std::stod(next_word(&str, ' '));
             double lon = std::stod(next_word(&str, ' '));
 
-            if (id == g_start) {
-                start = c_nodes;
-                g_start = -2;
-            }
-
             Node node(c_nodes, id, lat, lon);
             graph.v_nodes[c_nodes] = node;
 
@@ -76,16 +75,38 @@ Problem::Problem(std::string file_name) {
             long int v_id = std::stol(next_word(&str, ' '));
             long int w_id = std::stol(next_word(&str, ' '));
             double cost = std::stod(next_word(&str, ' '));
-            double profit = std::stod(next_word(&str, ' '));
 
-            // if (v_id != w_id) {
-            graph.addEdge(v_id, w_id, cost, profit);
+
+            Node n_s = graph.getNode(v_id);
+            Node n_t = graph.getNode(w_id);
+            Edge* edge = new Edge(n_s, n_t, cost);
+
+            graph.addEdge(edge);
             c_edges ++;
-            // }
+
+            std::getline(file, str);
+            if (str[0] != 'f') {
+                throw std::runtime_error("Error: graph file not correct format; need 'f' after 'e'");
+            }
+
+            t = next_word(&str, ' ');
+            while (has_word(&str, ' ')) {
+                double lat = std::stod(next_word(&str, ' '));
+                double lon = std::stod(next_word(&str, ' '));
+                edge->geo_locs.push_back(std::make_pair(lon, lat));
+            }
+
+            std::getline(file, str);
+            if (str[0] != 'g') {
+                throw std::runtime_error("Error: graph file not correct format; need 'g' after 'f'");
+            }
+
+            t = next_word(&str, ' ');
+            while (has_word(&str, ' ')) {
+                edge->tags.push_back(next_word(&str, ' '));
+            }
         }
     }
-    if (g_start != -2) 
-        throw std::runtime_error("Error: start node was not in the graph");
     if (c_nodes != n_nodes)
         throw std::runtime_error("Error: number of nodes (" + std::to_string(c_nodes) + ") does not match the file preamble (" + std::to_string(n_nodes) + ")");
     if (c_edges != n_edges)
@@ -158,8 +179,17 @@ std::string Problem::outputToString() {
 
     std::string outputString = "{\n    \"path\": [\n";
 
+    for (int i = 0; i < path.size() - 1; i++){
+        outputString += "        [" + std::to_string(path[i].lat) + "," + std::to_string(path[i].lon) + "], \n";
+
+        Edge* edge = graph.getEdge(path[i].id, path[i+1].id);
+        for (int j = 0; j < edge->geo_locs.size(); j++) {
+            auto pair = edge->geo_locs[path[i].g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
+            outputString += "        [" + std::to_string(pair.first) + "," + std::to_string(pair.second) + "], \n";
+        }
+    }
+
     for (auto node = path.begin(); node != std::prev(path.end()); ++node){
-        outputString += "        [" + std::to_string(node->lat) + "," + std::to_string(node->lon) + "], \n";
     }
 
     outputString += "        [" + std::to_string(path.begin()->lat) + "," + std::to_string(path.begin()->lon) + "] \n";
@@ -167,4 +197,37 @@ std::string Problem::outputToString() {
     outputString += "    ]\n}";
 
     return outputString;
+}
+
+void Problem::calculateProfit() {
+    for (Edge* edge : graph.v_edges) {
+        edge->profit = 0;
+        for (std::string tag: edge->tags) {
+            if (pref_tags.contains(tag)) {
+                edge->profit += 1;
+            }
+            if (avoid_tags.contains(tag)) {
+                edge->profit -= 1;
+            }
+        }
+    }
+}
+
+double Problem::getQuality(std::vector<int> path) {
+    std::set<Edge*> edgSet;
+
+    double quality = 0.0;
+
+    for (int i = 0; i < path.size() - 1; i++)
+    {
+        Edge* edge = graph.getEdge(path[i], path[i+1]);
+        
+        if (!edgSet.contains(edge)) {
+            
+            quality += edge->cost * edge->profit;
+            edgSet.insert(edge);
+        }
+    }
+
+    return quality;
 }

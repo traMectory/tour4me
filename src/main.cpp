@@ -8,12 +8,14 @@
 
 using namespace httpserver;
 
-class url_args_resource : public http_resource {
+class calculate_tour : public http_resource {
 public:
     const std::shared_ptr<http_response> render_GET(const http_request& req) {
         double lat;
         double lon;
         double distance;
+
+        problem->pref_tags.clear();
 
         try
         {
@@ -21,18 +23,25 @@ public:
             lon = std::stod(req.get_arg("lon"));
             distance = std::stod(req.get_arg("dis"));
             printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
+
+            for (std::string tag : all_tags) {
+                if (req.get_arg(tag)[0] == 'd') {
+                    problem->pref_tags.insert(tag);
+                    std::cout << req.get_arg(tag) << " - " << tag << std::endl;
+                }
+                // std::cout << req.get_arg(tag) << " - " << tag << std::endl;
+            }
         }
         catch(const std::exception& e)
         {      
             return std::shared_ptr<string_response>(new string_response("Bad input", 400, "text/plain"));
         }
         
-        Problem problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kArbeit.txt");
 
         double best_distance = 1000000000000;
         Node start;
 
-        for (Node v : problem.graph.v_nodes) {
+        for (Node v : problem->graph.v_nodes) {
             double dis = v.distance(lat, lon);
             // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
             if (dis < best_distance) {
@@ -43,26 +52,37 @@ public:
             }
         }
 
-        problem.start = start.id;
-        problem.center_lon = start.lon;
-        problem.center_lat = start.lat;
+        problem->start = start.id;
+        problem->center_lon = start.lon;
+        problem->center_lat = start.lat;
 
-        problem.target_distance = distance;
+        problem->path.clear();
+        problem->quality = -1;
+
+        problem->calculateProfit();
+
+
+
+        printf("%f, %f\n", start.lat, start.lon);
+
+        // problem->pref_tags.insert("gravel");
+
+        problem->target_distance = distance;
 
         Jogger solver;
-        SolveStatus status = solver.solve(&problem);
+        SolveStatus status = solver.solve(problem);
 
         switch(status)
         {
             case SolveStatus::Optimal: 
                 printf("Optimal solution found!\n"); 
-                return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
-                if(gpx) {problem.outputToGPX(filename);} 
+                return std::shared_ptr<string_response>(new string_response(problem->outputToString(), 200, "application/json"));
+                if(gpx) {problem->outputToGPX(filename);} 
                 break;
             case SolveStatus::Feasible: 
                 printf("Feasible solution found\n"); 
-                return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
-                if(gpx) {problem.outputToGPX(filename);} 
+                return std::shared_ptr<string_response>(new string_response(problem->outputToString(), 200, "application/json"));
+                if(gpx) {problem->outputToGPX(filename);} 
                 break;
             case SolveStatus::Unsolved: 
                 printf("Problem was unsolved\n"); 
@@ -74,24 +94,52 @@ public:
     }
 };
 
-inline bool exists_test0 (const std::string& name) {
-    std::ifstream f(name.c_str());
-    return f.good();
-}
+class graph_data : public http_resource {
+    const std::shared_ptr<http_response> render_GET(const http_request& req) {
+        std::string response = "{\n";
+        response += "    \"max_lat\": " + std::to_string(problem->graph.max_lat) + ", \n";
+        response += "    \"min_lat\": " + std::to_string(problem->graph.min_lat) + ", \n";
+        response += "    \"max_lon\": " + std::to_string(problem->graph.max_lon) + ", \n";
+        response += "    \"min_lon\": " + std::to_string(problem->graph.min_lon) + ", \n";
+        response += "    \"center_lat\": " + std::to_string(problem->center_lat) + ", \n";
+        response += "    \"center_lon\": " + std::to_string(problem->center_lon) + ", \n";
+        response += "    \"tags\": [\n";
+        for (int i = 0; i < all_tags.size() - 1; i++)
+            response += "        \"" + all_tags[i] + "\",\n";
+        response += "        \"" + all_tags[all_tags.size() - 1] + "\"\n    ]\n";
+        response += "}";
+        return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
+    }
+};
 
 class file_response_resource : public http_resource {
 public:
     const std::shared_ptr<http_response> render_GET(const http_request& req) {
-        printf("test: %d\n", exists_test0("/home/hagedoorn/Documents/TUD/Code/AOPcpp/web/main.html"));
         return std::shared_ptr<file_response>(new file_response("/home/hagedoorn/Documents/TUD/Code/AOPcpp/web/main.html", 200, "text/html"));
     }
 };
 
 int main(int argc, char** argv) {
+        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kNijkerk.txt");
+        printf("1\n");
         webserver ws = create_webserver(8080);
 
-        url_args_resource uar;
+        // problem->pref_tags.insert("gravel");
+        // problem->pref_tags.insert("unpaved");
+        // problem->pref_tags.insert("compacted");
+        // problem->pref_tags.insert("track");
+        // problem->pref_tags.insert("fine_gravel");
+        // problem->pref_tags.insert("rock");
+        // problem->pref_tags.insert("pebblestone");
+
+        problem->pref_tags.insert("unclassified");
+        problem->pref_tags.insert("cycleway");
+
+        calculate_tour uar;
         ws.register_resource("/tour", &uar);
+
+        graph_data gdr;
+        ws.register_resource("/graphdata", &gdr);
 
 
         file_response_resource hwr;
@@ -100,41 +148,4 @@ int main(int argc, char** argv) {
         ws.start(true);
         
         return 0;
-    }
-
-
-
-// int main(int argc, char* argv[]) 
-// {
-//     parseOptions(argc, argv);
-
-
-
-//     Problem problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/" + filename + ".txt");
-//     // // Graph graph = getSmallGraph();
-//     printf("Nodes: %d, Edges: %d\n", problem.getNumberOfNodes(), problem.getNumberOfEdges());
-
-//     S_Colony solver;
-    
-//     SolveStatus status = solver.solve(&problem);
-//     double baseLine = problem.quality;
-//     bool update = true;
-
-
-
-
-
-   
-    
-
-//     switch(status)
-//     {
-//         case SolveStatus::Optimal   : printf("Optimal solution found!\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
-//         case SolveStatus::Feasible  : printf("Feasible solution found\n"); problem.outputPath(filename); if(gpx) {problem.outputToGPX(filename);} break;
-//         case SolveStatus::Unsolved  : printf("Problem was unsolved\n"); break;
-//     }
-
-//     // problem.outputPath(path, filename);
-    
-//     return 0;
-// }
+}

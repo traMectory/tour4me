@@ -9,15 +9,16 @@ private:
     double prefernce;
 
 public:
+    std::vector<std::string> tags;
+    std::vector<std::pair<double, double>> geo_locs;
     Edge();
-    Edge(Node n_s, Node n_t, double n_cost, double n_profit) {
+    Edge(Node n_s, Node n_t, double n_cost) {
         if (n_s.id < n_t.id) {
             s = n_s; t = n_t;
         } else {
             s = n_t; t = n_s;
         }
         cost = n_cost;
-        profit = n_profit;
     };
     Node s, t;
     double pheromone = 1;

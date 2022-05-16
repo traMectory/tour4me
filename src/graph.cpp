@@ -20,10 +20,10 @@ void Graph::addEdge(Edge* edge) {
 }
 
 
-void Graph::addEdge(long int s_id, long int t_id, double cost, double profit) {
+void Graph::addEdge(long int s_id, long int t_id, double cost) {
     Node s = getNode(s_id);
     Node t = getNode(t_id);;
-    Edge* edge = new Edge(s, t, cost, profit);
+    Edge* edge = new Edge(s, t, cost);
 
     addEdge(edge);
 }
@@ -111,24 +111,7 @@ bool Graph::edgeExists(int s_id, int t_id) {
 //     return path;
 // }
 
-double Graph::quality(std::vector<int> path) {
-    // printf("%d, %d", 1, 1);
-    std::set<Edge*> edgSet;
 
-    double quality = 0.0;
-
-    for (int i = 0; i < path.size() - 1; i++)
-    {
-        Edge* edge = getEdge(path[i], path[i+1]);
-        
-        if (!edgSet.contains(edge)) {
-            quality += edge->profit;
-            edgSet.insert(edge);
-        }
-    }
-
-    return quality;
-}
 
 double Graph::length(std::vector<int> path) {
     std::set<Edge*> edgSet;

@@ -57,7 +57,7 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
             int neighborId = o_pair.first;
             Edge* edge = G->v_edges[o_pair.second];
 
-            double newDistance = bestKnownDist + (edge->cost / edge->profit);
+            double newDistance = bestKnownDist + (edge->cost / (edge->profit + 0.1));
             double newActual = actual + edge->cost;
 
             if (newActual > udis)
@@ -128,9 +128,10 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
 
 SolveStatus Jogger::solve(Problem* P) {
 
-    double ringSize = 10;
+    double init_ringSize = 5;
+    double temp_ringSize = 200;
 
-    std::unordered_map<int, std::vector<int>> s_ring = ring(&P->graph, P->start, P->target_distance/3 - ringSize, P->target_distance/3 + ringSize);
+    std::unordered_map<int, std::vector<int>> s_ring = ring(&P->graph, P->start, P->target_distance/3 - init_ringSize, P->target_distance/3 + init_ringSize);
 
     std::vector<int> bestPath;
     double bestQuality = -1;
@@ -144,7 +145,7 @@ SolveStatus Jogger::solve(Problem* P) {
         int point_a = pair.first;
         std::vector<int> path_s_a = pair.second;
 
-        std::unordered_map<int, std::vector<int>> tem_ring = ring(&P->graph, point_a, P->target_distance/3 - ringSize, P->target_distance/3 + ringSize);
+        std::unordered_map<int, std::vector<int>> tem_ring = ring(&P->graph, point_a, P->target_distance/3 - temp_ringSize, P->target_distance/3 + temp_ringSize);
 
         for ( auto &t_pair : tem_ring ) {
             int point_b = t_pair.first;
@@ -159,7 +160,7 @@ SolveStatus Jogger::solve(Problem* P) {
                     f_path.push_back(path_b_s[i]);
                 }
 
-                double quality = P->graph.quality(f_path);
+                double quality = P->getQuality(f_path);
                 if (quality > bestQuality) {
                     bestQuality = quality;
                     bestPath = f_path;

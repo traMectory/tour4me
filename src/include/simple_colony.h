@@ -2,7 +2,6 @@
 
 #include "graph.h"
 #include "edge.h"
-#include "quality.h"
 #include "solver.h"
 #include "miscellaneous.h"
 #include <random>

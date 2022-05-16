@@ -3,28 +3,28 @@ import math
 
 import sys
 
-def hasTags(data, tags):
+def hasTag(data, tag):
     for key, value in data.items():
         # if key == "surface":
         #     print(key, value)
-        if key in tags:
+        if key == tag:
             return True
         if isinstance(value, list):
             for s in value:
-                if s in tags:
+                if s == tag:
                     return True
         if isinstance(value, dict):
-            if hasTags(value, tags):
+            if hasTag(value, tag):
                 return True
         if isinstance(value, str):
-            if value in tags:
+            if value == tag:
                 return True
     return False
 
 useful_tags_way = ['oneway', 'lanes', 'name', 'highway', 'maxspeed', 'width', 'est_width','surface']
-ox.config(use_cache=True, log_console=False, useful_tags_way=useful_tags_way)
+ox.config(use_cache=True, log_console=True, useful_tags_way=useful_tags_way)
 
-prefered_tags = ['gravel', 'unpaved', 'compacted', 'track', 'fine_gravel', 'rock', 'pebblestone']
+process_tags = ['cycleway', 'paved', 'cobblestone', 'gravel', 'unpaved', 'compacted', 'track', 'fine_gravel', 'rock', 'pebblestone', 'unclassified', 'resedential', 'path', 'track', 'secondary']
 
 
 #radius of the earth
@@ -32,15 +32,15 @@ R = 6371e3
 
 target_distance = 100e3
 
-# Work
-center_lat = 51.4895 
-center_lon = 7.40577
+# Eindhoven
+center_lat = 51.461343 
+center_lon = 5.474989
 
 # Home
 # center_lat = 51.481190
 # center_lon = 7.431180
 
-file_name = "100kArbeit"
+file_name = "100kEindhoven"
 
 if len(sys.argv) == 4 + 1:
     target_distance = float(sys.argv[1])
@@ -76,11 +76,13 @@ s = ox.distance.nearest_nodes(G, center_lon, center_lat)
 # ox.plot_graph_route(G, [s], route_linewidth=1, node_size=0)
 
 node_str = f"c {target_distance = }, {center_lat = }, {center_lon = }, {file_name = }\n"
-node_str += f"c g $id_start_vertex $target_distance $center_lat $center_lon\n"
+node_str += f"c g $max_lat $min_lat $max_lon $min_lon $center_lat $center_lon\n"
 node_str += f"c p #nodes #edges\n"
 node_str += f"c n $id $lat $lon\n"
-node_str += f"c e $v_id $w_id $e_cost $e_profit\n"
-node_str += f"g {s} {target_distance} {center_lat} {center_lon}\n"
+node_str += f"c e $v_id $w_id $e_cost\n"
+node_str += f"c f intermediate nodes of edge\n"
+node_str += f"c g tags of edge\n"
+node_str += f"g {max_lat} {min_lat} {max_lon} {min_lon} {center_lat} {center_lon}\n"
 node_str += f"p {len(G.nodes)} {sum(1 if not G.get_edge_data(s, t)[0]['oneway'] else 0 for s, t, _ in G.edges)}\n"
 
 print(node_str)
@@ -90,14 +92,33 @@ for node in G.nodes:
     lon = G.nodes[node]['x']
     node_str += f"n {node} {lat} {lon}\n"
 
+paths = []
+
 for edge in G.edges:
     s, t, _ = edge
     data = G.get_edge_data(s, t)[0]
     length = data['length']
     if not data['oneway']:
-        node_str += f"e {s} {t} {length} { length if hasTags(data, prefered_tags) else length/100 }\n"
+        node_str += f"e {s} {t} {length}\n"
 
-ox.plot_graph(G, node_size=0)
+        node_str += "f"
+        if 'geometry' in data:
+            if (s > t):
+                for lat, lon in reversed(data['geometry'].coords):
+                    node_str += f" {lat} {lon}"
+            else:
+                for lat, lon in data['geometry'].coords[:-1]:
+                    node_str += f" {lat} {lon}"
+        node_str += "\n"
+
+        node_str += "g"
+        for tag in process_tags:
+            if hasTag(data, tag):
+                node_str += f" {tag}"
+
+        node_str += "\n"
+
+# ox.plot_graph_routes(G, paths, route_linewidth=1, node_size=0, bgcolor='k')
 
 with open(f"/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/{file_name}.txt", "w") as text_file:
     text_file.write(node_str)

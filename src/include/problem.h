@@ -17,6 +17,8 @@ protected:
 public:
     int start;
     double center_lat, center_lon;
+    std::set<std::string> pref_tags;
+    std::set<std::string> avoid_tags;
     Graph graph;
 
     Node getStart() { return graph.v_nodes[start]; };
@@ -33,4 +35,6 @@ public:
 
     int getNumberOfNodes() { return graph.getNumberOfNodes(); };
     int getNumberOfEdges() { return graph.getNumberOfEdges(); };
+    void calculateProfit() ;
+    double getQuality(std::vector<int> path);
 };
