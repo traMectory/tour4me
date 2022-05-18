@@ -1,8 +1,8 @@
 // TODO needs to be refractored completely to work with new hiearcy
 
-#include "simple_colony.h"
+#include "colony.h"
 
-void S_Colony::updatePheromones(Problem* P, Ant* ant, double quality) {
+void Colony::updatePheromones(Problem* P, Ant* ant, double quality) {
     for (Edge* e : P->graph.v_edges) {
         e->pheromone = 1;
     }
@@ -18,17 +18,17 @@ void S_Colony::updatePheromones(Problem* P, Ant* ant, double quality) {
 
 
             
-            // printf("    edgecoutnt: %d\n", ant->getCount(edge));
+            printf("    edgecoutnt: %d\n", ant->getCount(edge));
             if (ant->getCount(edge) == 1) {
             
-                edge->pheromone = 10000;
+                edge->pheromone = 1000;
 
             }
         }
     }
 }
 
-void S_Colony::walk_ant(Ant* ant, Problem* P)
+void Colony::walk_ant(Ant* ant, Problem* P)
 {    
     ant->moveToNext(P);
     
@@ -40,18 +40,17 @@ void S_Colony::walk_ant(Ant* ant, Problem* P)
 
 
 
-SolveStatus S_Colony::solve(Problem* P)
+SolveStatus Colony::solve(Problem* P)
 {
     Ant* bestAnt;
 
+    for (Edge* e : P->graph.v_edges) {
+        e->pheromone = 1;
+    }
     
 
     for (int j = 0; j < N_GENERATIONS; j++)
     {
-        for (Edge* e : P->graph.v_edges) {
-            if (e->pheromone > 1)
-                printf("phe: %f\n", e->pheromone);
-        }
         bestAnt = nullptr;
 
         double bestQuality = -1;
@@ -72,7 +71,7 @@ SolveStatus S_Colony::solve(Problem* P)
             // else
             //     printf("Quality of path: %f, length: %f, uniqueness: %f \n", antQuality, ant.getLength(), uniqueness);
 
-            printf("  - ant %d, atStart %d, antQau %f, bestQua %f\n", i, ant->atStart(), antQuality, bestQuality);
+            printf("  - gen: %d, ant %d, atStart %d, antQau %f, bestQua %f\n", j, i, ant->atStart(), antQuality, bestQuality);
 
             if (ant->atStart() && antQuality > bestQuality) {
                 bestAnt = ant;

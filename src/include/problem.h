@@ -20,6 +20,7 @@ public:
     std::set<std::string> pref_tags;
     std::set<std::string> avoid_tags;
     Graph graph;
+    Graph backbone;
 
     Node getStart() { return graph.v_nodes[start]; };
 

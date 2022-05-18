@@ -23,6 +23,7 @@ bool has_word(std::string* line, char delimiter) {
 
 Problem::Problem(std::string file_name) {
     graph = Graph();
+    backbone = Graph();
 
     graphName = file_name;
 
@@ -56,6 +57,9 @@ Problem::Problem(std::string file_name) {
 
             graph.m_edges = std::vector<std::unordered_map<int, int>>(n_nodes);
             graph.v_nodes = std::vector<Node>(n_nodes);
+
+            backbone.m_edges = std::vector<std::unordered_map<int, int>>(n_nodes);
+            backbone.v_nodes = std::vector<Node>(n_nodes);
         } else if (type == 'n') {
             std::string t = next_word(&str, ' ');
             long int id = std::stol(next_word(&str, ' '));
@@ -65,9 +69,17 @@ Problem::Problem(std::string file_name) {
             Node node(c_nodes, id, lat, lon);
             graph.v_nodes[c_nodes] = node;
 
+            backbone.v_nodes[c_nodes] = node;
+
             std::unordered_map<int, int> edge_list;
+
             graph.m_edges[c_nodes] = edge_list;
             graph.g_id_node.insert(std::make_pair(id, node));
+
+            std::unordered_map<int, int> edge_list_backbone;
+
+            backbone.m_edges[c_nodes] = edge_list_backbone;
+            backbone.g_id_node.insert(std::make_pair(id, node));
 
             c_nodes ++;
         } else if (type == 'e') {
@@ -103,7 +115,12 @@ Problem::Problem(std::string file_name) {
 
             t = next_word(&str, ' ');
             while (has_word(&str, ' ')) {
-                edge->tags.push_back(next_word(&str, ' '));
+                std::string word = next_word(&str, ' ');
+                edge->tags.push_back(word);
+                
+                if (word.compare("backbone") == 0) {
+                    backbone.addEdge(edge);
+                }
             }
         }
     }
@@ -187,9 +204,6 @@ std::string Problem::outputToString() {
             auto pair = edge->geo_locs[path[i].g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
             outputString += "        [" + std::to_string(pair.first) + "," + std::to_string(pair.second) + "], \n";
         }
-    }
-
-    for (auto node = path.begin(); node != std::prev(path.end()); ++node){
     }
 
     outputString += "        [" + std::to_string(path.begin()->lat) + "," + std::to_string(path.begin()->lon) + "] \n";

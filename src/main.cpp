@@ -14,6 +14,7 @@ public:
         double lat;
         double lon;
         double distance;
+        int algorithm;
 
         problem->pref_tags.clear();
 
@@ -22,6 +23,7 @@ public:
             lat = std::stod(req.get_arg("lat"));
             lon = std::stod(req.get_arg("lon"));
             distance = std::stod(req.get_arg("dis"));
+            algorithm = std::stoi(req.get_arg("algo"));
             printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
 
             for (std::string tag : all_tags) {
@@ -69,8 +71,23 @@ public:
 
         problem->target_distance = distance;
 
-        Jogger solver;
-        SolveStatus status = solver.solve(problem);
+        SolveStatus status;
+
+        switch(algorithm)
+        {
+            case 0:
+            {
+                Jogger solver;
+                status = solver.solve(problem);
+                break;
+            }
+            case 1:
+            {
+                Colony solver;
+                status = solver.solve(problem);
+                break;
+            }
+        }
 
         switch(status)
         {
@@ -106,34 +123,54 @@ class graph_data : public http_resource {
         response += "    \"tags\": [\n";
         for (int i = 0; i < all_tags.size() - 1; i++)
             response += "        \"" + all_tags[i] + "\",\n";
-        response += "        \"" + all_tags[all_tags.size() - 1] + "\"\n    ]\n";
+        response += "        \"" + all_tags[all_tags.size() - 1] + "\"\n    ],\n";
+        response += "    \"algorithms\": [\n";
+        for (int i = 0; i < algorithms.size() - 1; i++)
+            response += "        \"" + algorithms[i] + "\",\n";
+        response += "        \"" + algorithms[algorithms.size() - 1] + "\"\n    ]\n";
         response += "}";
+
         return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
     }
 };
 
-class file_response_resource : public http_resource {
+class backbone_data : public http_resource {
+    const std::shared_ptr<http_response> render_GET(const http_request& req) {
+        std::string response = "{\n";
+        response += "    \"backbone\": [\n";
+
+        for (Edge* edge : problem->backbone.v_edges) {
+
+            response += "    [\n        [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "], \n";
+            for (int j = 0; j < edge->geo_locs.size(); j++) {
+                // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
+                response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
+            }
+            response += "        [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] \n    ],\n";
+            // response += "        [" + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].first) + "," + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].second) + "], \n";
+        }
+        response.pop_back();
+        response.pop_back();
+
+        response += "\n    ]\n";
+        response += "}";
+
+        return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
+    }
+};
+
+class index_resource : public http_resource {
 public:
     const std::shared_ptr<http_response> render_GET(const http_request& req) {
+        std::cout << "Get request\n";
         return std::shared_ptr<file_response>(new file_response("/home/hagedoorn/Documents/TUD/Code/AOPcpp/web/main.html", 200, "text/html"));
     }
 };
 
 int main(int argc, char** argv) {
-        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kNijkerk.txt");
-        printf("1\n");
+        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kHause.txt");
+    
         webserver ws = create_webserver(8080);
-
-        // problem->pref_tags.insert("gravel");
-        // problem->pref_tags.insert("unpaved");
-        // problem->pref_tags.insert("compacted");
-        // problem->pref_tags.insert("track");
-        // problem->pref_tags.insert("fine_gravel");
-        // problem->pref_tags.insert("rock");
-        // problem->pref_tags.insert("pebblestone");
-
-        problem->pref_tags.insert("unclassified");
-        problem->pref_tags.insert("cycleway");
 
         calculate_tour uar;
         ws.register_resource("/tour", &uar);
@@ -141,8 +178,10 @@ int main(int argc, char** argv) {
         graph_data gdr;
         ws.register_resource("/graphdata", &gdr);
 
+        backbone_data bdr;
+        ws.register_resource("/backbone", &bdr);
 
-        file_response_resource hwr;
+        index_resource hwr;
         ws.register_resource("/index.html", &hwr);
 
         ws.start(true);

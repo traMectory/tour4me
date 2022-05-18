@@ -60,12 +60,11 @@
             </div>
             
             
-            <div class="btn-group">
-                <input type="radio" class="btn-check" name="algorithm" id="jogger" autocomplete="off" checked />
-                <label class="btn btn-primary" for="option1">Jogger</label>
+            <div class="btn-group" id="algoRadio">
+                <!-- <input type="radio" class="btn-check" name="algorithm" id="jogger" autocomplete="off" checked />
+                <label class="btn btn-primary" for="jogger">Jogger</label> -->
             
-                <input type="radio" class="btn-check" name="algorithm" id="colony" autocomplete="off" />
-                <label class="btn btn-primary" for="option2">Ant Colony</label>
+                
             </div>
 
             <div class="btn-group mr-2 tags" id="tagButtons" style="position:absolute; right:20px">
@@ -81,7 +80,10 @@
             var line;
             var path = [];
 
+            var backbone = [];
+
             var tags;
+            var algos;
 
             var onClick = function(e) {
                 marker.setLatLng(e.latlng);
@@ -107,6 +109,7 @@
                         center_lon  = result["center_lon"];
 
                         tags = result["tags"];
+                        algos = result["algorithms"];
 
                         map = L.map('map').setView([center_lat, center_lon], 14);
 
@@ -139,11 +142,29 @@
                         
 
                         map.on('click', onClick);
+
                         tagButtons  = document.getElementById("tagButtons");
                         tags.forEach(tag => {
                             var name = tag[0].toUpperCase() + tag.slice(1);
                             tagButtons.innerHTML += "<label class=\"btn btn-cycle btn-outline-secondary neutral\" id=\"" + tag + "\">" + name + "</label>"
                         });
+
+
+                        algosRadio  = document.getElementById("algoRadio");
+
+                        const algo = algos[0];
+                        var name = algo[0].toUpperCase() + algo.slice(1);
+                        algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + 0 + " id=\"" + algo + "\" autocomplete=\"off\" checked/>";
+                        algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
+                            
+
+                        for (let index = 1; index < algos.length; index++) {
+                            const algo = algos[index];
+                            var name = algo[0].toUpperCase() + algo.slice(1);
+                            algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + index + " id=\"" + algo + "\" autocomplete=\"off\" />";
+                            algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
+                            
+                        }
 
                         $(".btn-group > .btn-cycle").click(function(){
                             if ($(this).hasClass("neutral")) {
@@ -167,6 +188,8 @@
                             }
                         });
 
+                        getBackbone();
+
                     },
                     error: function (xhr, status) {
                         alert("Failed to contact server");
@@ -177,6 +200,29 @@
             });
             
             
+            function getBackbone() {
+                $.ajax({
+                    url: "http://localhost:8080/backbone",
+                    contentType: "application/json",
+                    dataType: 'json',
+                    success: function(result){
+                        backbone.forEach(backbone_line => {
+                            backbone_line.remove(map);
+                        });
+
+                        backbone = []
+
+                        result["backbone"].forEach(backbone_line => {
+                            b_line = L.polyline(backbone_line).addTo(map);
+                            backbone.push(b_line)
+                        });
+                    },
+                    error: function (xhr, status) {
+                        document.getElementById("overlay").style.display = "none";
+                        alert("Failed to load backbone!");
+                    }
+                })
+            }
 
 
             function getPath() {
@@ -205,12 +251,12 @@
                     }
                 });
 
-                console.log(tag_str);
+                var algorithm = document.querySelector('input[name="algorithm"]:checked').value;
 
                 document.getElementById("overlay").style.display = "block";
 
                 $.ajax({
-                    url: "http://localhost:8080/tour?dis=" + dis + "&lat="+ lat + "&lon=" + lon + tag_str,
+                    url: "http://localhost:8080/tour?dis=" + dis + "&lat="+ lat + "&lon=" + lon + "&algo=" + algorithm + tag_str,
                     contentType: "application/json",
                     dataType: 'json',
                     success: function(result){

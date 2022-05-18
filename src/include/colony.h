@@ -6,7 +6,7 @@
 #include "miscellaneous.h"
 #include <random>
 
-class S_Colony: virtual public Solver
+class Colony: virtual public Solver
 {
 protected:
 
@@ -20,12 +20,12 @@ protected:
         double m_l_path = 0;
         double m_p_path = 0;
         double shoelace_sum = 0;
-        S_Colony* col;
+        Colony* col;
         int n_unqiue = 0;
 
         Edge* chooseEdge(Problem* P, std::unordered_map<int, int> o_edges);
     public:
-        Ant(Node lock, S_Colony* c);
+        Ant(Node lock, Colony* c);
         Ant() = default;
 
         void moveToNext(Problem* P);
@@ -57,9 +57,9 @@ public:
     double V_AlPHA = 0;
     double V_BETA = 0;
 
-    double V_AVOID_VISITNG_NODE_TWICE = 1000000;
-    double V_AVOID_SHARP_TURNS = 10;
-    double V_GO_TO_S_AT_END = 10;
+    double V_AVOID_VISITNG_NODE_TWICE = 0;
+    double V_AVOID_SHARP_TURNS = 0;
+    double V_GO_TO_S_AT_END = 0;
 
     double V_BEST_ANT_PROFIT = 10;
 
@@ -68,7 +68,7 @@ public:
     std::mt19937 gen; // Standard mersenne_twister_engine seeded with rd()
     std::uniform_real_distribution<> dis;
 
-    S_Colony() { gen = std::mt19937(rd()); dis = std::uniform_real_distribution<>(0.0, 1.0); };
+    Colony() { gen = std::mt19937(rd()); dis = std::uniform_real_distribution<>(0.0, 1.0); };
 
     void updatePheromones(Problem* P, Ant* ant, double quality);
 
