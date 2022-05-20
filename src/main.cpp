@@ -61,7 +61,7 @@ public:
         problem->path.clear();
         problem->quality = -1;
 
-        problem->calculateProfit();
+        problem->calculateProfit(&problem->graph);
 
 
 
@@ -84,6 +84,12 @@ public:
             case 1:
             {
                 Colony solver;
+                status = solver.solve(problem);
+                break;
+            }
+            case 2:
+            {
+                ILP solver;
                 status = solver.solve(problem);
                 break;
             }
@@ -136,10 +142,37 @@ class graph_data : public http_resource {
 
 class backbone_data : public http_resource {
     const std::shared_ptr<http_response> render_GET(const http_request& req) {
+
+        Node start;
+        double best_distance = 1000000000000;
+        double lat = std::stod(req.get_arg("lat"));
+        double lon = std::stod(req.get_arg("lon"));
+
+        for (Node v : problem->graph.v_nodes) {
+            double dis = v.distance(lat, lon);
+            // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
+            if (dis < best_distance) {
+
+
+                best_distance = dis;
+                start = v;
+            }
+        }
+
+        problem->start = start.id;
+
+        Graph* rG = reduceGraph(&problem->graph, problem->start, 400);
+        int prev_n = 1000000000;
+        while (rG->v_nodes.size() < prev_n) {
+            prev_n = rG->v_nodes.size();
+            rG = simplifyGraph(rG, problem->start);
+        }
+        // rG = simplifyGraph(rG, problem->start);
+
         std::string response = "{\n";
         response += "    \"backbone\": [\n";
 
-        for (Edge* edge : problem->backbone.v_edges) {
+        for (Edge* edge : rG->v_edges) {
 
             response += "    [\n        [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "], \n";
             for (int j = 0; j < edge->geo_locs.size(); j++) {

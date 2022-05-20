@@ -26,7 +26,7 @@ public:
     std::vector<std::unordered_map<int, int>> m_edges;
 
     // std::unordered_map<long int, std::unordered_map<long int, int>> m_edges;
-    std::unordered_map<long int, Node> g_id_node;
+    std::unordered_map<long int, int> g_id_node;
 
     
 
@@ -43,7 +43,7 @@ public:
 
     bool edgeExists(int s_id, int t_id);
     
-    Node getNode(long int id) { return g_id_node.at(id); };
+    int getNode(long int id) { return g_id_node.at(id); };
 
     int getNumberOfNodes() { return v_nodes.size(); };
     int getNumberOfEdges() { return v_edges.size(); };

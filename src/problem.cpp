@@ -74,12 +74,12 @@ Problem::Problem(std::string file_name) {
             std::unordered_map<int, int> edge_list;
 
             graph.m_edges[c_nodes] = edge_list;
-            graph.g_id_node.insert(std::make_pair(id, node));
+            graph.g_id_node.insert(std::make_pair(id, c_nodes));
 
             std::unordered_map<int, int> edge_list_backbone;
 
             backbone.m_edges[c_nodes] = edge_list_backbone;
-            backbone.g_id_node.insert(std::make_pair(id, node));
+            backbone.g_id_node.insert(std::make_pair(id, c_nodes));
 
             c_nodes ++;
         } else if (type == 'e') {
@@ -89,8 +89,8 @@ Problem::Problem(std::string file_name) {
             double cost = std::stod(next_word(&str, ' '));
 
 
-            Node n_s = graph.getNode(v_id);
-            Node n_t = graph.getNode(w_id);
+            Node n_s = graph.v_nodes[graph.getNode(v_id)];
+            Node n_t = graph.v_nodes[graph.getNode(w_id)];
             Edge* edge = new Edge(n_s, n_t, cost);
 
             graph.addEdge(edge);
@@ -213,8 +213,8 @@ std::string Problem::outputToString() {
     return outputString;
 }
 
-void Problem::calculateProfit() {
-    for (Edge* edge : graph.v_edges) {
+void Problem::calculateProfit(Graph* G) {
+    for (Edge* edge : G->v_edges) {
         edge->profit = 0;
         for (std::string tag: edge->tags) {
             if (pref_tags.contains(tag)) {

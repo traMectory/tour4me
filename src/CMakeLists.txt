@@ -10,11 +10,17 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
+
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 find_package(LIBHTTPSERVER REQUIRED)
 
 include_directories(${LIBHTTPSERVER_INCLUDE_DIRS})
+
+find_package(GUROBI REQUIRED)
+
+include_directories(${GUROBI_INCLUDE_DIRS})
+
 
 
 include_directories(include)
@@ -28,9 +34,15 @@ include_directories(tools)
 
 if(CXX)
   set(CMAKE_CXX_STANDARD 20)
+  target_link_libraries(${CMAKE_PROJECT_NAME} optimized ${GUROBI_CXX_LIBRARY}
+                        debug ${GUROBI_CXX_DEBUG_LIBRARY})
+
 endif()
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ${LIBHTTPSERVER_LIBRARIES})
+
+target_link_libraries(${CMAKE_PROJECT_NAME} ${GUROBI_LIBRARY})
+
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
   include(FeatureSummary)

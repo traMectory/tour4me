@@ -188,7 +188,7 @@
                             }
                         });
 
-                        getBackbone();
+                        // getBackbone();
 
                     },
                     error: function (xhr, status) {
@@ -201,8 +201,11 @@
             
             
             function getBackbone() {
+                var lat = marker.getLatLng()["lat"];
+                var lon = marker.getLatLng()["lng"];
+
                 $.ajax({
-                    url: "http://localhost:8080/backbone",
+                    url: "http://localhost:8080/backbone?lat="+ lat + "&lon=" + lon,
                     contentType: "application/json",
                     dataType: 'json',
                     success: function(result){
@@ -213,7 +216,7 @@
                         backbone = []
 
                         result["backbone"].forEach(backbone_line => {
-                            b_line = L.polyline(backbone_line).addTo(map);
+                            b_line = L.polyline(backbone_line, {color: "red", opacity: 0.2}).addTo(map);
                             backbone.push(b_line)
                         });
                     },
@@ -226,6 +229,7 @@
 
 
             function getPath() {
+
 
                 var lat = marker.getLatLng()["lat"];
                 var lon = marker.getLatLng()["lng"];
@@ -253,6 +257,11 @@
 
                 var algorithm = document.querySelector('input[name="algorithm"]:checked').value;
 
+                console.log(algorithm)
+                if (algorithm == 2) {
+                    getBackbone()
+                }
+
                 document.getElementById("overlay").style.display = "block";
 
                 $.ajax({
@@ -263,7 +272,7 @@
                         if (line) {
                             line.remove(map);
                         }
-                        line = L.polyline(result["path"], {color: 'blue'}).addTo(map);
+                        line = L.polyline(result["path"], {color: 'blue', weight: 5}).addTo(map);
 
                         
 

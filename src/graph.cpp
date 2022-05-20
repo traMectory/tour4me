@@ -21,8 +21,8 @@ void Graph::addEdge(Edge* edge) {
 
 
 void Graph::addEdge(long int s_id, long int t_id, double cost) {
-    Node s = getNode(s_id);
-    Node t = getNode(t_id);;
+    Node s = v_nodes[getNode(s_id)];
+    Node t = v_nodes[getNode(t_id)];
     Edge* edge = new Edge(s, t, cost);
 
     addEdge(edge);
