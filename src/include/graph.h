@@ -8,6 +8,7 @@
 #include "node.h"
 #include <iterator>
 #include <iostream>
+#include <fstream>
 
 #include <queue>
 #include <set>
@@ -18,7 +19,12 @@ class Graph
 {  
 
 public:    
+
+    Graph() {};
+    Graph(std::string file_name);
+
     double max_lat, min_lat, max_lon, min_lon;
+    double center_lat, center_lon;
 
     std::vector<Node> v_nodes;
     std::vector<Edge*> v_edges;

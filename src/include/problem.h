@@ -4,7 +4,6 @@
 #include "graph.h"
 #include "edge.h"
 
-#include <fstream>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -28,7 +27,7 @@ public:
     double quality = -1;
 
     double target_distance;
-    Problem(std::string file_name);
+    Problem(std::string file_name, std::string backbone_name);
 
     void outputPath(std::string file_name);
     void outputToGPX(std::string file_name);

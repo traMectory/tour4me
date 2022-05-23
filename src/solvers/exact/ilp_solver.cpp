@@ -258,7 +258,7 @@ SolveStatus ILP::solve(Problem *P)
     try
     {
         // Reduce Graph
-        Graph* rG = reduceGraph(&P->graph, P->start, 400);
+        Graph* rG = reduceGraph(&P->graph, P->start, 200);
         int prev_n = 1000000000;
         while (rG->v_nodes.size() < prev_n) {
             prev_n = rG->v_nodes.size();

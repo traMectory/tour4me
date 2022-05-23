@@ -55,11 +55,12 @@ public:
         }
 
         problem->start = start.id;
-        problem->center_lon = start.lon;
-        problem->center_lat = start.lat;
+        problem->graph.center_lon = start.lon;
+        problem->graph.center_lat = start.lat;
 
         problem->path.clear();
         problem->quality = -1;
+        problem->graph = problem->backbone;
 
         problem->calculateProfit(&problem->graph);
 
@@ -124,8 +125,8 @@ class graph_data : public http_resource {
         response += "    \"min_lat\": " + std::to_string(problem->graph.min_lat) + ", \n";
         response += "    \"max_lon\": " + std::to_string(problem->graph.max_lon) + ", \n";
         response += "    \"min_lon\": " + std::to_string(problem->graph.min_lon) + ", \n";
-        response += "    \"center_lat\": " + std::to_string(problem->center_lat) + ", \n";
-        response += "    \"center_lon\": " + std::to_string(problem->center_lon) + ", \n";
+        response += "    \"center_lat\": " + std::to_string(problem->graph.center_lat) + ", \n";
+        response += "    \"center_lon\": " + std::to_string(problem->graph.center_lon) + ", \n";
         response += "    \"tags\": [\n";
         for (int i = 0; i < all_tags.size() - 1; i++)
             response += "        \"" + all_tags[i] + "\",\n";
@@ -161,27 +162,32 @@ class backbone_data : public http_resource {
 
         problem->start = start.id;
 
-        Graph* rG = reduceGraph(&problem->graph, problem->start, 400);
-        int prev_n = 1000000000;
-        while (rG->v_nodes.size() < prev_n) {
-            prev_n = rG->v_nodes.size();
-            rG = simplifyGraph(rG, problem->start);
-        }
+        Graph* rG = reduceGraph(&problem->graph, problem->start, 200);
         // rG = simplifyGraph(rG, problem->start);
 
         std::string response = "{\n";
-        response += "    \"backbone\": [\n";
+        response += "  \"backbone\": \n    [\n";
 
         for (Edge* edge : rG->v_edges) {
 
-            response += "    [\n        [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "], \n";
-            for (int j = 0; j < edge->geo_locs.size(); j++) {
-                // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
-                response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
+            response += "      {\n        \"line\": [ [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "],";
+            // for (int j = 0; j < edge->geo_locs.size(); j++) {
+            //     // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
+            //     response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
+            // }
+            response += " [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] ],\n";
+            response += "        \"tags\": [";
+            for (std::string tag : edge->tags) {
+                response += "\"" + tag + "\", ";
             }
-            response += "        [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] \n    ],\n";
+            if (edge->tags.size() > 0) {
+                response.pop_back();
+                response.pop_back();
+            }
+            response += "]\n      },\n";
             // response += "        [" + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].first) + "," + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].second) + "], \n";
         }
+
         response.pop_back();
         response.pop_back();
 
@@ -201,7 +207,9 @@ public:
 };
 
 int main(int argc, char** argv) {
-        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kHause.txt");
+        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kHause.txt", "/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kHause_B.txt");
+
+        printf("Starting server\n");
     
         webserver ws = create_webserver(8080);
 

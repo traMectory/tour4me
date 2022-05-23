@@ -188,7 +188,7 @@
                             }
                         });
 
-                        // getBackbone();
+                        getBackbone();
 
                     },
                     error: function (xhr, status) {
@@ -216,7 +216,14 @@
                         backbone = []
 
                         result["backbone"].forEach(backbone_line => {
-                            b_line = L.polyline(backbone_line, {color: "red", opacity: 0.2}).addTo(map);
+                            colorstr = "orange";
+                            backbone_line["tags"].forEach(tag => {
+                                tag_button = document.getElementById(tag);
+                                if (tag_button.classList.contains("desire")) {
+                                    colorstr = "green";
+                                }
+                            });
+                            b_line = L.polyline(backbone_line["line"], {color: colorstr, opacity: 0.2}).addTo(map);
                             backbone.push(b_line)
                         });
                     },
@@ -274,12 +281,10 @@
                         }
                         line = L.polyline(result["path"], {color: 'blue', weight: 5}).addTo(map);
 
-                        
-
                         path = result["path"];
                         
                         document.getElementById("overlay").style.display = "none";
-                        // map.fitBounds(line.getBounds());
+                        map.fitBounds(line.getBounds());
                     },
                     error: function (xhr, status) {
                         document.getElementById("overlay").style.display = "none";

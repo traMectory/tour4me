@@ -3,9 +3,10 @@ import math
 
 import sys
 
-from osmnx import utils_geo, projection, downloader, utils
+from osmnx import utils_geo, projection, downloader, utils, truncate, simplification, settings, graph
 
-backbone_refs = set()
+useful_tags_way = ['oneway', 'lanes', 'name', 'highway', 'maxspeed', 'width', 'est_width','surface']
+ox.config(use_cache=True, log_console=False, useful_tags_way=useful_tags_way)
 
 #radius of the earth
 R = 6371e3
@@ -22,7 +23,7 @@ center_lon = 7.431180
 
 file_name = "100kHause"
 
-def getBackbone(north, south, east, west):
+def getBackbone(north, south, east, west, outputName):
     polygon = utils_geo.bbox_to_poly(north, south, east, west)
 
     
@@ -46,7 +47,7 @@ def getBackbone(north, south, east, west):
     # pass each polygon exterior coordinates in the list to the API, one at a
     # time. The '>' makes it recurse so we get ways and the ways' nodes.
     for polygon_coord_str in polygon_coord_strs:
-        query_str = f"{overpass_settings};(relation[\"route\"=\"bicycle\"](poly:'{polygon_coord_str}'););out body;>;out skel qt;"
+        query_str = f"{overpass_settings};(relation[\"route\"=\"bicycle\"](poly:'{polygon_coord_str}');>;);out;"
         # query_str = f"{overpass_settings};(relation{osm_filter}(poly:'{polygon_coord_str}');>;);out;"
         response_json = downloader.overpass_request(data={"data": query_str})
         response_jsons.append(response_json)
@@ -54,14 +55,27 @@ def getBackbone(north, south, east, west):
         f"Got all network data within polygon from API in {len(polygon_coord_strs)} request(s)"
     )
 
-    for response_json in response_jsons:
-        for val in response_json['elements']:
-            if val['type'] == 'relation':
-                if 'tags' in val:
-                    if 'route' in val['tags']:
-                        if val['tags']['route'] == "bicycle": 
-                            for member in val['members']:   
-                                backbone_refs.add(member['ref'])
+    bidirectional = "bike" in settings.bidirectional_network_types
+    G = graph._create_graph(response_jsons, retain_all=True, bidirectional=bidirectional)
+
+    # truncate the graph to the extent of the polygon
+    G = truncate.truncate_graph_polygon(G, polygon, False, False)
+
+    # simplify the graph topology after truncation. don't truncate after
+    # simplifying or you may have simplified out to an endpoint beyond the
+    
+    G = simplification.simplify_graph(G)
+
+    outputGraph(G, outputName)
+
+    # for response_json in response_jsons:
+    #     for val in response_json['elements']:
+    #         if val['type'] == 'relation':
+    #             if 'tags' in val:
+    #                 if 'route' in val['tags']:
+    #                     if val['tags']['route'] == "bicycle": 
+    #                         for member in val['members']:   
+    #                             backbone_refs.add(member['ref'])
 
 def hasTag(data, tag):
     for key, value in data.items():
@@ -81,8 +95,60 @@ def hasTag(data, tag):
                 return True
     return False
 
-useful_tags_way = ['oneway', 'lanes', 'name', 'highway', 'maxspeed', 'width', 'est_width','surface']
-ox.config(use_cache=True, log_console=True, useful_tags_way=useful_tags_way)
+def outputGraph(graph, output_name):
+    node_str = f"c {target_distance = }, {center_lat = }, {center_lon = }, {file_name = }\n"
+    node_str += f"c g $max_lat $min_lat $max_lon $min_lon $center_lat $center_lon\n"
+    node_str += f"c p #nodes #edges\n"
+    node_str += f"c n $id $lat $lon\n"
+    node_str += f"c e $v_id $w_id $e_cost\n"
+    node_str += f"c f intermediate nodes of edge\n"
+    node_str += f"c g tags of edge\n"
+    node_str += f"g {max_lat} {min_lat} {max_lon} {min_lon} {center_lat} {center_lon}\n"
+    # node_str += f"p {len(graph.nodes)} {sum(1 if not graph.get_edge_data(s, t)[0]['oneway'] else 0 for s, t, _ in graph.edges)}\n"
+    node_str += f"p {len(graph.nodes)} {len(graph.edges)}\n"
+
+
+    for node in graph.nodes:
+        lat = graph.nodes[node]['y']
+        lon = graph.nodes[node]['x']
+        node_str += f"n {node} {lat} {lon}\n"
+
+    paths = []
+
+    for edge in graph.edges:
+        s, t, _ = edge
+        data = graph.get_edge_data(s, t)[0]
+        # print(data)
+        ref = data['osmid']
+        # print(ref)
+        length = data['length']
+        # if not data['oneway']:
+        node_str += f"e {s} {t} {length}\n"
+
+        node_str += "f"
+        if 'geometry' in data:
+            if (s > t):
+                for lat, lon in reversed(data['geometry'].coords):
+                    node_str += f" {lat} {lon}"
+            else:
+                for lat, lon in data['geometry'].coords[:-1]:
+                    node_str += f" {lat} {lon}"
+        node_str += "\n"
+
+        node_str += "g"
+        for tag in process_tags:
+            if hasTag(data, tag):
+                node_str += f" {tag}"
+
+        node_str += "\n"
+
+    # ox.plot_graph_routes(G, paths, route_linewidth=1, node_size=0, bgcolor='k')
+
+    # raise ValueError('Stop')
+
+    with open(f"/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/{output_name}.txt", "w") as text_file:
+        text_file.write(node_str)
+
 
 process_tags = ['cycleway', 'paved', 'cobblestone', 'gravel', 'unpaved', 'compacted', 'track', 'fine_gravel', 'rock', 'pebblestone', 'unclassified', 'resedential', 'path', 'track', 'secondary']
 
@@ -116,76 +182,20 @@ print(min_lat, max_lat, min_lon, max_lon)
 center_lat *= 180 / math.pi
 center_lon *= 180 / math.pi
 
-getBackbone(max_lat, min_lat, max_lon, min_lon)
+print("starting computing Backbone")
 
+getBackbone(max_lat, min_lat, max_lon, min_lon, file_name + "_B")
 
+print("starting computing base graph")
 
-G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon, network_type='bike')
-s = ox.distance.nearest_nodes(G, center_lon, center_lat)
+# G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon, network_type='bike')
+# s = ox.distance.nearest_nodes(G, center_lon, center_lat)
+
+# outputGraph(G, file_name)
 
 # ox.plot_graph_route(G, [s], route_linewidth=1, node_size=0)
 
-node_str = f"c {target_distance = }, {center_lat = }, {center_lon = }, {file_name = }\n"
-node_str += f"c g $max_lat $min_lat $max_lon $min_lon $center_lat $center_lon\n"
-node_str += f"c p #nodes #edges\n"
-node_str += f"c n $id $lat $lon\n"
-node_str += f"c e $v_id $w_id $e_cost\n"
-node_str += f"c f intermediate nodes of edge\n"
-node_str += f"c g tags of edge\n"
-node_str += f"g {max_lat} {min_lat} {max_lon} {min_lon} {center_lat} {center_lon}\n"
-# node_str += f"p {len(G.nodes)} {sum(1 if not G.get_edge_data(s, t)[0]['oneway'] else 0 for s, t, _ in G.edges)}\n"
-node_str += f"p {len(G.nodes)} {len(G.edges)}\n"
 
-
-for node in G.nodes:
-    lat = G.nodes[node]['y']
-    lon = G.nodes[node]['x']
-    node_str += f"n {node} {lat} {lon}\n"
-
-paths = []
-
-for edge in G.edges:
-    s, t, _ = edge
-    data = G.get_edge_data(s, t)[0]
-    # print(data)
-    ref = data['osmid']
-    # print(ref)
-    length = data['length']
-    # if not data['oneway']:
-    node_str += f"e {s} {t} {length}\n"
-
-    node_str += "f"
-    if 'geometry' in data:
-        if (s > t):
-            for lat, lon in reversed(data['geometry'].coords):
-                node_str += f" {lat} {lon}"
-        else:
-            for lat, lon in data['geometry'].coords[:-1]:
-                node_str += f" {lat} {lon}"
-    node_str += "\n"
-
-    node_str += "g"
-    for tag in process_tags:
-        if hasTag(data, tag):
-            node_str += f" {tag}"
-
-    if isinstance(ref, list):
-        for re in ref:
-            if re and re in backbone_refs:
-                node_str += " backbone"
-                break
-    else:
-        if ref and ref in backbone_refs:
-            node_str += " backbone"
-
-    node_str += "\n"
-
-# ox.plot_graph_routes(G, paths, route_linewidth=1, node_size=0, bgcolor='k')
-
-# raise ValueError('Stop')
-
-with open(f"/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/{file_name}.txt", "w") as text_file:
-    text_file.write(node_str)
 
 
 
