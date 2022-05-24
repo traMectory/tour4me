@@ -43,7 +43,7 @@ public:
         double best_distance = 1000000000000;
         Node start;
 
-        for (Node v : problem->graph.v_nodes) {
+        for (Node v : problem->backbone.v_nodes) {
             double dis = v.distance(lat, lon);
             // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
             if (dis < best_distance) {
@@ -84,7 +84,7 @@ public:
             }
             case 1:
             {
-                Colony solver;
+                ILS solver;
                 status = solver.solve(problem);
                 break;
             }
@@ -149,7 +149,7 @@ class backbone_data : public http_resource {
         double lat = std::stod(req.get_arg("lat"));
         double lon = std::stod(req.get_arg("lon"));
 
-        for (Node v : problem->graph.v_nodes) {
+        for (Node v : problem->backbone.v_nodes) {
             double dis = v.distance(lat, lon);
             // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
             if (dis < best_distance) {
@@ -162,7 +162,7 @@ class backbone_data : public http_resource {
 
         problem->start = start.id;
 
-        Graph* rG = reduceGraph(&problem->graph, problem->start, 200);
+        Graph* rG = reduceGraph(&problem->backbone, problem->start, 200);
         // rG = simplifyGraph(rG, problem->start);
 
         std::string response = "{\n";

@@ -205,7 +205,7 @@
                 var lon = marker.getLatLng()["lng"];
 
                 $.ajax({
-                    url: "http://localhost:8080/backbone?lat="+ lat + "&lon=" + lon,
+                    url: "backbone?lat="+ lat + "&lon=" + lon,
                     contentType: "application/json",
                     dataType: 'json',
                     success: function(result){
@@ -272,7 +272,7 @@
                 document.getElementById("overlay").style.display = "block";
 
                 $.ajax({
-                    url: "http://localhost:8080/tour?dis=" + dis + "&lat="+ lat + "&lon=" + lon + "&algo=" + algorithm + tag_str,
+                    url: "tour?dis=" + dis + "&lat="+ lat + "&lon=" + lon + "&algo=" + algorithm + tag_str,
                     contentType: "application/json",
                     dataType: 'json',
                     success: function(result){

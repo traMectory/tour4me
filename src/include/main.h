@@ -5,7 +5,7 @@
 #include "values.h"
 #include "miscellaneous.h"
 #include "problem.h"
-#include "colony.h"
+#include "ils.h"
 #include "ilp_solver.h"
 
 #include "jogger_solver.h"
@@ -18,4 +18,4 @@ Problem* problem;
 bool gpx = false;
 
 std::vector<std::string> all_tags{"cycleway", "paved", "cobblestone", "gravel", "unpaved", "compacted", "fine_gravel", "rock", "pebblestone", "unclassified", "resedential", "path", "track", "secondary"};
-std::vector<std::string> algorithms{"jogger", "colony", "ILP"};
+std::vector<std::string> algorithms{"jogger", "ILS", "ILP"};

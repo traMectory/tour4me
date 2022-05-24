@@ -28,7 +28,7 @@ add_executable(tourGenerator ${sources})
 include_directories(solvers)
 include_directories(solvers/exact)
 include_directories(solvers/greedy)
-include_directories(solvers/ant-colony)
+include_directories(solvers/heuristic)
 include_directories(tools)
 
 

@@ -91,7 +91,7 @@ std::string Problem::outputToString() {
 
 void Problem::calculateProfit(Graph* G) {
     for (Edge* edge : G->v_edges) {
-        edge->profit = 0;
+        edge->profit = 0.00000000001;
         for (std::string tag: edge->tags) {
             if (pref_tags.contains(tag)) {
                 edge->profit += 1;
@@ -120,4 +120,17 @@ double Problem::getQuality(std::vector<int> path) {
     }
 
     return quality;
+}
+
+double Problem::getLength(std::vector<int> path) {
+    double length = 0.0;
+
+    for (int i = 0; i < path.size() - 1; i++)
+    {
+        Edge* edge = graph.getEdge(path[i], path[i+1]);
+        
+        length += edge->cost;
+    }
+
+    return length;
 }

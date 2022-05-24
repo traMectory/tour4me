@@ -37,4 +37,5 @@ public:
     int getNumberOfEdges() { return graph.getNumberOfEdges(); };
     void calculateProfit(Graph* G) ;
     double getQuality(std::vector<int> path);
+    double getLength(std::vector<int> path);
 };

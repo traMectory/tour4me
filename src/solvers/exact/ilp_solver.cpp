@@ -257,8 +257,9 @@ SolveStatus ILP::solve(Problem *P)
     printf("Starting creating model\n");
     try
     {
+        
         // Reduce Graph
-        Graph* rG = reduceGraph(&P->graph, P->start, 200);
+        Graph* rG = reduceGraph(&P->backbone, P->start, 200);
         int prev_n = 1000000000;
         while (rG->v_nodes.size() < prev_n) {
             prev_n = rG->v_nodes.size();
@@ -276,7 +277,7 @@ SolveStatus ILP::solve(Problem *P)
 
         // Create an empty model
         GRBModel model = GRBModel(env);
-        // model.set(GRB_IntParam_MIPFocus, 1);
+        // model.set(GRB_IntParam_MIPFocus, 3);
         // model.set(GRB_DoubleParam_TimeLimit, 200.0);
 
 
