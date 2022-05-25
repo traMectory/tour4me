@@ -1,36 +1,39 @@
 import osmnx as ox
+import networkx as nx
 import math
 
 import sys
 
 from osmnx import utils_geo, projection, downloader, utils, truncate, simplification, settings, graph
 
-useful_tags_way = ['oneway', 'lanes', 'name', 'highway', 'maxspeed', 'width', 'est_width','surface']
+useful_tags_way = ['oneway', 'lanes', 'name', 'highway',
+                   'maxspeed', 'width', 'est_width', 'surface']
 ox.config(use_cache=True, log_console=False, useful_tags_way=useful_tags_way)
 
-#radius of the earth
+# radius of the earth
 R = 6371e3
 
-target_distance = 100e3
+target_distance = 1e3
 
 # Eindhoven
-# center_lat = 51.461343 
+# center_lat = 51.461343
 # center_lon = 5.474989
 
 # Home
 center_lat = 51.481190
 center_lon = 7.431180
 
-file_name = "100kHause"
+file_name = "1kHause"
+
 
 def getBackbone(north, south, east, west, outputName):
     polygon = utils_geo.bbox_to_poly(north, south, east, west)
 
-    
     buffer_dist = 500
     poly_proj, crs_utm = projection.project_geometry(polygon)
     poly_proj_buff = poly_proj.buffer(buffer_dist)
-    poly_buff, _ = projection.project_geometry(poly_proj_buff, crs=crs_utm, to_latlong=True)
+    poly_buff, _ = projection.project_geometry(
+        poly_proj_buff, crs=crs_utm, to_latlong=True)
 
     # download the network data from OSM within buffered polygon
 
@@ -56,14 +59,15 @@ def getBackbone(north, south, east, west, outputName):
     )
 
     bidirectional = "bike" in settings.bidirectional_network_types
-    G = graph._create_graph(response_jsons, retain_all=True, bidirectional=bidirectional)
+    G = graph._create_graph(
+        response_jsons, retain_all=True, bidirectional=bidirectional)
 
     # truncate the graph to the extent of the polygon
     G = truncate.truncate_graph_polygon(G, polygon, False, False)
 
     # simplify the graph topology after truncation. don't truncate after
     # simplifying or you may have simplified out to an endpoint beyond the
-    
+
     G = simplification.simplify_graph(G)
 
     outputGraph(G, outputName)
@@ -73,9 +77,10 @@ def getBackbone(north, south, east, west, outputName):
     #         if val['type'] == 'relation':
     #             if 'tags' in val:
     #                 if 'route' in val['tags']:
-    #                     if val['tags']['route'] == "bicycle": 
-    #                         for member in val['members']:   
+    #                     if val['tags']['route'] == "bicycle":
+    #                         for member in val['members']:
     #                             backbone_refs.add(member['ref'])
+
 
 def hasTag(data, tag):
     for key, value in data.items():
@@ -95,6 +100,46 @@ def hasTag(data, tag):
                 return True
     return False
 
+
+def outputPathLengths(graph, pairs, output_name):
+    node_str = f"c {target_distance = }, {center_lat = }, {center_lon = }, {file_name = }\n"
+    # node_str += f"p {len(graph.nodes)} {sum(1 if not graph.get_edge_data(s, t)[0]['oneway'] else 0 for s, t, _ in graph.edges)}\n"
+    node_str += f"p {len(graph.nodes)}\n"
+
+    for edge in graph.edges:
+        s, t, _ = edge
+        data = graph.get_edge_data(s, t)[0]
+        # print(data)
+        ref = data['osmid']
+        # print(ref)
+        length = data['length']
+        # if not data['oneway']:
+        node_str += f"e {s} {t} {length}\n"
+
+        node_str += "f"
+        if 'geometry' in data:
+            if (s > t):
+                for lat, lon in reversed(data['geometry'].coords):
+                    node_str += f" {lat} {lon}"
+            else:
+                for lat, lon in data['geometry'].coords[:-1]:
+                    node_str += f" {lat} {lon}"
+        node_str += "\n"
+
+        node_str += "g"
+        for tag in process_tags:
+            if hasTag(data, tag):
+                node_str += f" {tag}"
+
+        node_str += "\n"
+
+    # ox.plot_graph_routes(G, paths, route_linewidth=1, node_size=0, bgcolor='k')
+
+    # raise ValueError('Stop')
+
+    with open(f"/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/{output_name}.txt", "w") as text_file:
+        text_file.write(node_str)
+
 def outputGraph(graph, output_name):
     node_str = f"c {target_distance = }, {center_lat = }, {center_lon = }, {file_name = }\n"
     node_str += f"c g $max_lat $min_lat $max_lon $min_lon $center_lat $center_lon\n"
@@ -106,7 +151,6 @@ def outputGraph(graph, output_name):
     node_str += f"g {max_lat} {min_lat} {max_lon} {min_lon} {center_lat} {center_lon}\n"
     # node_str += f"p {len(graph.nodes)} {sum(1 if not graph.get_edge_data(s, t)[0]['oneway'] else 0 for s, t, _ in graph.edges)}\n"
     node_str += f"p {len(graph.nodes)} {len(graph.edges)}\n"
-
 
     for node in graph.nodes:
         lat = graph.nodes[node]['y']
@@ -150,8 +194,8 @@ def outputGraph(graph, output_name):
         text_file.write(node_str)
 
 
-process_tags = ['cycleway', 'paved', 'cobblestone', 'gravel', 'unpaved', 'compacted', 'track', 'fine_gravel', 'rock', 'pebblestone', 'unclassified', 'resedential', 'path', 'track', 'secondary']
-
+process_tags = ['cycleway', 'paved', 'cobblestone', 'gravel', 'unpaved', 'compacted', 'track',
+                'fine_gravel', 'rock', 'pebblestone', 'unclassified', 'resedential', 'path', 'track', 'secondary']
 
 
 if len(sys.argv) == 4 + 1:
@@ -165,11 +209,15 @@ print(f"{target_distance = }, {center_lat = }, {center_lon = }, {file_name = }")
 center_lat *= math.pi / 180
 center_lon *= math.pi / 180
 
-max_lat = math.asin( math.sin(center_lat)*math.cos(target_distance/(4*R)) +      math.cos(center_lat)*math.sin(target_distance/(4*R)) )
-min_lat = math.asin( math.sin(center_lat)*math.cos(target_distance/(4*R)) + -1 * math.cos(center_lat)*math.sin(target_distance/(4*R)) )
+max_lat = math.asin(math.sin(center_lat)*math.cos(target_distance /
+                    (4*R)) + math.cos(center_lat)*math.sin(target_distance/(4*R)))
+min_lat = math.asin(math.sin(center_lat)*math.cos(target_distance /
+                    (4*R)) + -1 * math.cos(center_lat)*math.sin(target_distance/(4*R)))
 
-max_lon = center_lon + math.atan2(      math.sin(target_distance/(4*R))*math.cos(center_lat), math.cos(target_distance/(4*R))-math.sin(center_lat)*math.sin(center_lat) )
-min_lon = center_lon + math.atan2( -1 * math.sin(target_distance/(4*R))*math.cos(center_lat), math.cos(target_distance/(4*R))-math.sin(center_lat)*math.sin(center_lat) )
+max_lon = center_lon + math.atan2(math.sin(target_distance/(4*R))*math.cos(
+    center_lat), math.cos(target_distance/(4*R))-math.sin(center_lat)*math.sin(center_lat))
+min_lon = center_lon + math.atan2(-1 * math.sin(target_distance/(4*R))*math.cos(
+    center_lat), math.cos(target_distance/(4*R))-math.sin(center_lat)*math.sin(center_lat))
 
 max_lat *= 180 / math.pi
 min_lat *= 180 / math.pi
@@ -188,15 +236,19 @@ getBackbone(max_lat, min_lat, max_lon, min_lon, file_name + "_B")
 
 print("starting computing base graph")
 
-# G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon, network_type='bike')
-# s = ox.distance.nearest_nodes(G, center_lon, center_lat)
+G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon, network_type='bike')
+s = ox.distance.nearest_nodes(G, center_lon, center_lat)
 
-# outputGraph(G, file_name)
+outputGraph(G, file_name)
+
+print("starting computing shortest path pairs")
+
+all_paths = nx.shortest_path(G, weight="length")
+print(all_paths)
+print(type(all_paths))
+
 
 # ox.plot_graph_route(G, [s], route_linewidth=1, node_size=0)
-
-
-
 
 
 # text_file = open("sample.txt", "w")
@@ -207,7 +259,6 @@ print("starting computing base graph")
 
 
 # fig, ax = ox.plot_graph_route(G, path, route_linewidth=1, node_size=0, bgcolor='k')
-
 
 
 # G = ox.graph_from_bbox(51.484, 51.373, 7.537, 7.345, network_type='bike')
@@ -222,7 +273,7 @@ print("starting computing base graph")
 #         # print(data)
 #         try:
 #             if data['surface'] in surface_tags:
-            
+
 #                 data['length'] *= gravel_grade
 #         except:
 #             pass
@@ -241,8 +292,6 @@ print("starting computing base graph")
 #         # print(G.get_edge_data(v, w)[0])
 
 
-
-
 # #Find best second node
 # paths = nx.shortest_path(G_modified, s, weight='length')
 
@@ -253,7 +302,7 @@ print("starting computing base graph")
 #     source = (G.nodes[s]['y'], G.nodes[s]['x'])
 
 #     target = (G.nodes[node]['y'], G.nodes[node]['x'])
-    
+
 #     if goal_distance/(10*1000) < distance.distance(source, target).km < 2*goal_distance/(5*1000):
 #         if node not in paths:
 #             continue
@@ -273,7 +322,7 @@ print("starting computing base graph")
 
 # for edge in G_modified.edges:
 #     v, w, _ = (edge)
-#     if v in best_path or w in best_path: 
+#     if v in best_path or w in best_path:
 #         data = G_modified.get_edge_data(v, w)[0]
 #         data['length'] += cross_penalty
 
@@ -292,7 +341,7 @@ print("starting computing base graph")
 #         closest_to_target_distance = abs(goal_distance - distance_path)
 #         best_second_node = node
 #         best_distance = distance_path
-    
+
 
 #     print(f'{i}/{len(G.nodes)}, {abs(goal_distance - distance_path)}                            ',end='\r')
 
@@ -305,7 +354,7 @@ print("starting computing base graph")
 
 # points = []
 # for node in final_path:
-    
+
 #     lat = G.nodes[node]['y']
 #     lon = G.nodes[node]['x']
 #     points.append((lat, lon))

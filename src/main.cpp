@@ -43,7 +43,8 @@ public:
         double best_distance = 1000000000000;
         Node start;
 
-        for (Node v : problem->backbone.v_nodes) {
+
+        for (Node v : problem->graph.v_nodes) {
             double dis = v.distance(lat, lon);
             // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
             if (dis < best_distance) {
@@ -60,8 +61,6 @@ public:
 
         problem->path.clear();
         problem->quality = -1;
-        problem->graph = problem->backbone;
-
         problem->calculateProfit(&problem->graph);
 
 
@@ -207,25 +206,31 @@ public:
 };
 
 int main(int argc, char** argv) {
-        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kHause.txt", "/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/100kHause_B.txt");
+        std::string filename = "50kHause";
+        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/"+filename+".txt", "/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/"+filename+"_B.txt");
 
-        printf("Starting server\n");
+        // problem->graph = problem->backbone;
+
+        printf("Calculating shortest path pairs\n");
+        problem->fillShortestPath(filename);
+
+//         printf("Starting server\n");
     
-        webserver ws = create_webserver(8080);
+//         webserver ws = create_webserver(8080);
 
-        calculate_tour uar;
-        ws.register_resource("/tour", &uar);
+//         calculate_tour uar;
+//         ws.register_resource("/tour", &uar);
 
-        graph_data gdr;
-        ws.register_resource("/graphdata", &gdr);
+//         graph_data gdr;
+//         ws.register_resource("/graphdata", &gdr);
 
-        backbone_data bdr;
-        ws.register_resource("/backbone", &bdr);
+//         backbone_data bdr;
+//         ws.register_resource("/backbone", &bdr);
 
-        index_resource hwr;
-        ws.register_resource("/index.html", &hwr);
+//         index_resource hwr;
+//         ws.register_resource("/index.html", &hwr);
 
-        ws.start(true);
+//         ws.start(true);
         
-        return 0;
+//         return 0;
 }

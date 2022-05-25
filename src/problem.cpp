@@ -6,6 +6,85 @@ Problem::Problem(std::string file_name, std::string backbone_name) {
     backbone = Graph(backbone_name);
 }
 
+
+void Problem::fillShortestPath(std::string filename)
+{
+    printf("%ld\n", graph.v_nodes.size());
+    std::ofstream outputFile("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/" + filename + "_sp.txt");
+    shortestPath.resize(graph.v_nodes.size());
+
+    for (int source = 0; source < graph.v_nodes.size(); source++)
+    {   
+        if (source % 100 == 0)
+            printf("%d / %ld\n", source, graph.v_nodes.size());
+        shortestPath[source].resize(graph.v_nodes.size());
+        // The output array. dist[i] will hold the shortest
+        // distance from src to i
+        std::unordered_map<int, double> dist;
+        std::priority_queue<pi, std::vector<pi>, std::greater<pi>> queue;
+
+        // Distance of source vertex from itself is always 0
+        dist.insert(std::make_pair(source, 0.0));
+        queue.push(std::make_pair(0.0, std::make_pair(source, 0.0)));
+
+        while (queue.size() > 0)
+        {
+            pi current = queue.top();
+            queue.pop();
+
+            double distance = current.first;
+            int currentNode = current.second.first;
+            double actual = current.second.second;
+
+            auto bestKnown = dist.find(currentNode);
+            double bestKnownDist = bestKnown->second;
+
+            // auto bestKnownActual = actual_dist.find(currentNode);
+            // double bestKnownActual =
+
+            // int x;
+            // std::cin >> x;
+
+            // printf("%f, %f\n", distance, bestKnownDist);
+
+            // printf("%ld\n", bestKnown);
+
+            if (bestKnown == dist.end())
+            {
+                dist.insert(std::make_pair(currentNode, distance));
+                bestKnownDist = distance;
+            }
+
+            if (bestKnownDist != distance)
+                continue;
+
+            for (auto &o_pair : graph.getEdges(graph.v_nodes[currentNode]))
+            {
+                int neighborId = o_pair.first;
+                Edge *edge = graph.v_edges[o_pair.second];
+
+                double newDistance = bestKnownDist + edge->cost;
+
+                if (dist.find(neighborId) == dist.end())
+                    dist.insert(std::make_pair(neighborId, 2147483647));
+
+                if (newDistance < dist[neighborId])
+                {
+                    queue.push(std::make_pair(newDistance, std::make_pair(neighborId, 0.0)));
+                    dist[neighborId] = newDistance;
+                }
+            }
+        }
+
+        for (int target = 0; target < graph.v_nodes.size(); target++)
+        {
+            shortestPath[source][target] = dist[target];
+            outputFile << "c " << source << " " << target << " " << dist[target] << "\n ";
+        }
+    }
+}
+
+
 void Problem::outputPath(std::string file_name) {
     std::ofstream outputFile("/home/hagedoorn/Documents/TUD/Code/AOPcpp/output/" + file_name + ".json");
 

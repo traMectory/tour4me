@@ -3,6 +3,7 @@
 #include "solver.h"
 #include <array>
 #include <map>
+#include <math.h>
 
 struct TempSol {
     std::vector<int> sol;
@@ -15,17 +16,15 @@ struct TempSol {
 class ILS: virtual public Solver
 {
 private:
-    std::vector<std::vector<double>> shortestPath;
     double C_min;
     double C_max;
 
-    void fillShortestPath();
 
     Problem *P;
 
-    bool insert(TempSol tempSolution, double dist, double minProfit, int maxDepth);
+    bool insert(TempSol* tempSolution, double dist, double minProfit, int maxDepth);
     TempSol initialisation(int maxDepth, int startLocation);
-    void improve(TempSol solution, int maxNoImprove, int maxDepth);
+    void improve(TempSol* solution, int maxNoImprove, int maxDepth);
 
 public:
     ILS() {};

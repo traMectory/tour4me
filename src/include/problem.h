@@ -21,6 +21,9 @@ public:
     Graph graph;
     Graph backbone;
 
+    std::vector<std::vector<double>> shortestPath;
+    void fillShortestPath(std::string filename);
+
     Node getStart() { return graph.v_nodes[start]; };
 
     std::vector<Node> path;
