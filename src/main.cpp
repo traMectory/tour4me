@@ -124,8 +124,10 @@ class graph_data : public http_resource {
         response += "    \"min_lat\": " + std::to_string(problem->graph.min_lat) + ", \n";
         response += "    \"max_lon\": " + std::to_string(problem->graph.max_lon) + ", \n";
         response += "    \"min_lon\": " + std::to_string(problem->graph.min_lon) + ", \n";
-        response += "    \"center_lat\": " + std::to_string(problem->graph.center_lat) + ", \n";
-        response += "    \"center_lon\": " + std::to_string(problem->graph.center_lon) + ", \n";
+        response += "    \"center_lat\": 51.489808, \n";
+        response += "    \"center_lon\": 7.406319, \n";
+        // response += "    \"center_lat\": " + std::to_string(problem->graph.center_lat) + ", \n";
+        // response += "    \"center_lon\": " + std::to_string(problem->graph.center_lon) + ", \n";
         response += "    \"tags\": [\n";
         for (int i = 0; i < all_tags.size() - 1; i++)
             response += "        \"" + all_tags[i] + "\",\n";
@@ -201,36 +203,33 @@ class index_resource : public http_resource {
 public:
     const std::shared_ptr<http_response> render_GET(const http_request& req) {
         std::cout << "Get request\n";
-        return std::shared_ptr<file_response>(new file_response("/home/hagedoorn/Documents/TUD/Code/AOPcpp/web/main.html", 200, "text/html"));
+        return std::shared_ptr<file_response>(new file_response("../web/main.html", 200, "text/html"));
     }
 };
 
 int main(int argc, char** argv) {
         std::string filename = "50kHause";
-        problem = new Problem("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/"+filename+".txt", "/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/"+filename+"_B.txt");
+        problem = new Problem("../input/"+filename+".txt", "../input/"+filename+"_B.txt");
 
         // problem->graph = problem->backbone;
 
-        printf("Calculating shortest path pairs\n");
-        problem->fillShortestPath(filename);
-
-//         printf("Starting server\n");
+        printf("Starting server\n");
     
-//         webserver ws = create_webserver(8080);
+        webserver ws = create_webserver(8080);
 
-//         calculate_tour uar;
-//         ws.register_resource("/tour", &uar);
+        calculate_tour uar;
+        ws.register_resource("/tour", &uar);
 
-//         graph_data gdr;
-//         ws.register_resource("/graphdata", &gdr);
+        graph_data gdr;
+        ws.register_resource("/graphdata", &gdr);
 
-//         backbone_data bdr;
-//         ws.register_resource("/backbone", &bdr);
+        backbone_data bdr;
+        ws.register_resource("/backbone", &bdr);
 
-//         index_resource hwr;
-//         ws.register_resource("/index.html", &hwr);
+        index_resource hwr;
+        ws.register_resource("/", &hwr);
 
-//         ws.start(true);
+        ws.start(true);
         
-//         return 0;
+        return 0;
 }

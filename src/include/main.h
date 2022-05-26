@@ -18,4 +18,4 @@ Problem* problem;
 bool gpx = false;
 
 std::vector<std::string> all_tags{"cycleway", "paved", "cobblestone", "gravel", "unpaved", "compacted", "fine_gravel", "rock", "pebblestone", "unclassified", "resedential", "path", "track", "secondary"};
-std::vector<std::string> algorithms{"jogger", "ILS", "ILP"};
+std::vector<std::string> algorithms{"jogger", "ILS"};

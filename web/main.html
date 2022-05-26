@@ -52,7 +52,7 @@
             
             <div class="input-group mb-3" >
                 
-                <input type="text" id="distance" class="form-control" value="10000" aria-label="Target Distance (m)">
+                <input type="text" id="distance" class="form-control" value="50000" aria-label="Target Distance (m)">
                 <div class="input-group-append">
                     <!-- <span class="input-group-text">m</span> -->
                     <button type="button" class="btn btn-primary" onclick="getPath()">Compute Path</button>
@@ -146,7 +146,12 @@
                         tagButtons  = document.getElementById("tagButtons");
                         tags.forEach(tag => {
                             var name = tag[0].toUpperCase() + tag.slice(1);
-                            tagButtons.innerHTML += "<label class=\"btn btn-cycle btn-outline-secondary neutral\" id=\"" + tag + "\">" + name + "</label>"
+                            if (name == "Path" || name == "Track") {
+                                tagButtons.innerHTML += "<label class=\"btn btn-cycle btn-success desire\" id=\"" + tag + "\">" + name + "</label>"
+                            } else {
+                                tagButtons.innerHTML += "<label class=\"btn btn-cycle btn-outline-secondary neutral\" id=\"" + tag + "\">" + name + "</label>"
+                            }
+                            
                         });
 
 
@@ -188,7 +193,7 @@
                             }
                         });
 
-                        getBackbone();
+                        // getBackbone();
 
                     },
                     error: function (xhr, status) {
