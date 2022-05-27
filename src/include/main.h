@@ -11,9 +11,16 @@
 #include "jogger_solver.h"
 
 std::string algoType;
-std::string filename;
 
-Problem* problem;
+double abs_min_lat = 50;
+double abs_max_lat = 52;
+double lat_gran = 0.5/2;
+double lat_pad = 0.5/4;
+ 
+double abs_min_lon = 5.5;
+double abs_max_lon = 9.25;
+double lon_gran = 0.75/2;
+double lon_pad = 0.75/4;
 
 bool gpx = false;
 
