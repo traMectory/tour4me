@@ -7,6 +7,8 @@
 #include "problem.h"
 #include "ils.h"
 #include "ilp_solver.h"
+#include <iomanip>
+#include <sstream>
 
 #include "jogger_solver.h"
 

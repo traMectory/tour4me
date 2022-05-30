@@ -30,13 +30,13 @@ ox.config(use_cache=False, log_console=False, useful_tags_way=useful_tags_way)
 # bottom of germany 47.185839 -> 47
 # number of blocks of 0.5 -> 16
 
-abs_min_lat = 51.25
-abs_max_lat = 51.5
+abs_min_lat = 47
+abs_max_lat = 55
 lat_gran = 0.5/2
 lat_pad = 0.5/4
 
-abs_min_lon = 7.1875 + 0.75/4
-abs_max_lon = 7.9375 - 0.75/4
+abs_min_lon = 5.5
+abs_max_lon = 15.25
 lon_gran = 0.75/2
 lon_pad = 0.75/4
 
@@ -202,7 +202,8 @@ while lat < abs_max_lat:
         max_lon = lon + lon_gran + lon_pad
 
 
-        file_name = f"grid-{max_lat}-{min_lat}-{max_lon}-{min_lon}"
+        file_name = f"grid-{ '%.4f' % max_lat }-{ '%.4f' % min_lat }-{ '%.4f' % max_lon }-{ '%.4f' % min_lon}"
+        print(file_name)
 
         if (exists(file_name + ".txt")):
             print(f"Gridcell calculated {count}")

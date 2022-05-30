@@ -17,8 +17,7 @@ public:
         double lon;
         double distance;
         int algorithm;
-
-        problem.pref_tags.clear();
+        Problem problem;
 
         try
         {
@@ -26,6 +25,21 @@ public:
             lon = std::stod(req.get_arg("lon"));
             distance = std::stod(req.get_arg("dis"));
             algorithm = std::stoi(req.get_arg("algo"));
+
+            double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
+            double max_lat = min_lat + 2 * lat_pad + lat_gran;
+            double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
+            double max_lon = min_lon + 2 * lon_pad + lon_gran;
+
+
+            std::stringstream stream;
+            stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
+            std::string filename = stream.str();
+
+            // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
+            
+            std::cout << filename << "\n";
+            problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
             printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
 
             for (std::string tag : all_tags)
@@ -44,13 +58,11 @@ public:
         }
 
         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
-        double max_lat = min_lat + 2*lat_pad + lat_gran;
+        double max_lat = min_lat + 2 * lat_pad + lat_gran;
         double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
-        double max_lon = min_lon + 2*lon_pad + lon_gran;
+        double max_lon = min_lon + 2 * lon_pad + lon_gran;
 
-        std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon); 
-
-        Problem problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
+        // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
 
         double best_distance = 1000000000000;
@@ -100,8 +112,7 @@ public:
         }
         case 2:
         {
-            ILP solver;
-            status = solver.solve(&problem);
+            status = SolveStatus::Unsolved;
             break;
         }
         }
@@ -152,9 +163,9 @@ class graph_data : public http_resource
         }
 
         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
-        double max_lat = min_lat + 2*lat_pad + lat_gran;
+        double max_lat = min_lat + 2 * lat_pad + lat_gran;
         double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
-        double max_lon = min_lon + 2*lon_pad + lon_gran;
+        double max_lon = min_lon + 2 * lon_pad + lon_gran;
 
         std::string response = "{\n";
         response += "    \"max_lat\": " + std::to_string(max_lat) + ", \n";

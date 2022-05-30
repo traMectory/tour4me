@@ -21,6 +21,8 @@ public:
     Graph graph;
     Graph backbone;
 
+
+
     std::vector<std::vector<double>> shortestPath;
     void fillShortestPath(std::string filename);
 
@@ -31,6 +33,7 @@ public:
 
     double target_distance;
     Problem(std::string file_name, std::string backbone_name);
+    Problem() {};
 
     void outputPath(std::string file_name);
     void outputToGPX(std::string file_name);
