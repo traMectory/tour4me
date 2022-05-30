@@ -160,7 +160,7 @@ SolveStatus Jogger::solve(Problem* P) {
                     f_path.push_back(path_b_s[i]);
                 }
 
-                double quality = P->getQuality(f_path);
+                double quality = P->getProfit(f_path);
                 if (quality > bestQuality) {
                     bestQuality = quality;
                     bestPath = f_path;

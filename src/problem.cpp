@@ -182,7 +182,26 @@ void Problem::calculateProfit(Graph* G) {
     }
 }
 
-double Problem::getQuality(std::vector<int> path) {
+double Problem::getProfit(std::vector<int> path) {
+    std::set<Edge*> edgSet;
+
+    double quality = 0.0;
+
+    for (int i = 0; i < path.size() - 1; i++)
+    {
+        Edge* edge = graph.getEdge(path[i], path[i+1]);
+        
+        if (!edgSet.contains(edge)) {
+            
+            quality += edge->cost * edge->profit;
+            edgSet.insert(edge);
+        }
+    }
+
+    return quality;
+}
+
+double Problem::getArea(std::vector<int> path) {
     std::set<Edge*> edgSet;
 
     double quality = 0.0;

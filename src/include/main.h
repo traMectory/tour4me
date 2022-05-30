@@ -27,4 +27,4 @@ double lon_pad = 0.75/4;
 bool gpx = false;
 
 std::vector<std::string> all_tags{"cycleway", "paved", "cobblestone", "gravel", "unpaved", "compacted", "fine_gravel", "rock", "pebblestone", "unclassified", "resedential", "path", "track", "secondary"};
-std::vector<std::string> algorithms{"jogger", "ILS"};
+std::vector<std::string> algorithms{"jogger", "ILS", "ILP"};

@@ -3,7 +3,6 @@
 #include "cxxopts.hpp"
 
 extern std::string algoType;
-extern std::string filename;
 
 extern bool gpx;
 

@@ -18,52 +18,37 @@ public:
         double distance;
         int algorithm;
         Problem problem;
+        std::string filename;
 
-        try
-        {
-            lat = std::stod(req.get_arg("lat"));
-            lon = std::stod(req.get_arg("lon"));
-            distance = std::stod(req.get_arg("dis"));
-            algorithm = std::stoi(req.get_arg("algo"));
-
-            double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
-            double max_lat = min_lat + 2 * lat_pad + lat_gran;
-            double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
-            double max_lon = min_lon + 2 * lon_pad + lon_gran;
-
-
-            std::stringstream stream;
-            stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
-            std::string filename = stream.str();
-
-            // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
-            
-            std::cout << filename << "\n";
-            problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
-            printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
-
-            for (std::string tag : all_tags)
-            {
-                if (req.get_arg(tag)[0] == 'd')
-                {
-                    problem.pref_tags.insert(tag);
-                    std::cout << req.get_arg(tag) << " - " << tag << std::endl;
-                }
-                // std::cout << req.get_arg(tag) << " - " << tag << std::endl;
-            }
-        }
-        catch (const std::exception &e)
-        {
-            return std::shared_ptr<string_response>(new string_response("Bad input", 400, "text/plain"));
-        }
+        lat = std::stod(req.get_arg("lat"));
+        lon = std::stod(req.get_arg("lon"));
+        distance = std::stod(req.get_arg("dis"));
+        algorithm = std::stoi(req.get_arg("algo"));
 
         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
         double max_lat = min_lat + 2 * lat_pad + lat_gran;
         double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
         double max_lon = min_lon + 2 * lon_pad + lon_gran;
 
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
+        filename = stream.str();
+
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
+        std::cout << filename << "\n";
+        problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
+        printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
+        problem.graph = problem.backbone;
+        for (std::string tag : all_tags)
+        {
+            if (req.get_arg(tag)[0] == 'd')
+            {
+                problem.pref_tags.insert(tag);
+                std::cout << req.get_arg(tag) << " - " << tag << std::endl;
+            }
+            // std::cout << req.get_arg(tag) << " - " << tag << std::endl;
+        }
 
         double best_distance = 1000000000000;
         Node start;
@@ -112,7 +97,8 @@ public:
         }
         case 2:
         {
-            status = SolveStatus::Unsolved;
+            ILP solver;
+            status = solver.solve(&problem);
             break;
         }
         }
@@ -190,68 +176,84 @@ class graph_data : public http_resource
     }
 };
 
-// class backbone_data : public http_resource
-// {
-//     const std::shared_ptr<http_response> render_GET(const http_request &req)
-//     {
+class backbone_data : public http_resource
+{
+    const std::shared_ptr<http_response> render_GET(const http_request &req)
+    {
 
-//         Node start;
-//         double best_distance = 1000000000000;
-//         double lat = std::stod(req.get_arg("lat"));
-//         double lon = std::stod(req.get_arg("lon"));
+        Node start;
+        double best_distance = 1000000000000;
+        double lat = std::stod(req.get_arg("lat"));
+        double lon = std::stod(req.get_arg("lon"));
 
-//         for (Node v : problem.backbone.v_nodes)
-//         {
-//             double dis = v.distance(lat, lon);
-//             // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
-//             if (dis < best_distance)
-//             {
+        double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
+        double max_lat = min_lat + 2 * lat_pad + lat_gran;
+        double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
+        double max_lon = min_lon + 2 * lon_pad + lon_gran;
 
-//                 best_distance = dis;
-//                 start = v;
-//             }
-//         }
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
+        std::string filename = stream.str();
 
-//         problem.start = start.id;
+        Problem problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
+        problem.graph = problem.backbone;
+        for (Node v : problem.graph.v_nodes)
+        {
+            double dis = v.distance(lat, lon);
+            // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
+            if (dis < best_distance)
+            {
 
-//         Graph *rG = reduceGraph(&problem.backbone, problem.start, 200);
-//         // rG = simplifyGraph(rG, problem.start);
+                best_distance = dis;
+                start = v;
+            }
+        }
 
-//         std::string response = "{\n";
-//         response += "  \"backbone\": \n    [\n";
+        problem.start = start.id;
 
-//         for (Edge *edge : rG->v_edges)
-//         {
+        Graph *rG = reduceGraph(&problem.graph, problem.start, 200);
+        int prev_n = 1000000000;
+        while (rG->v_nodes.size() < prev_n)
+        {
+            prev_n = rG->v_nodes.size();
+            rG = simplifyGraph(rG, problem.start);
+        }
 
-//             response += "      {\n        \"line\": [ [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "],";
-//             // for (int j = 0; j < edge->geo_locs.size(); j++) {
-//             //     // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
-//             //     response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
-//             // }
-//             response += " [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] ],\n";
-//             response += "        \"tags\": [";
-//             for (std::string tag : edge->tags)
-//             {
-//                 response += "\"" + tag + "\", ";
-//             }
-//             if (edge->tags.size() > 0)
-//             {
-//                 response.pop_back();
-//                 response.pop_back();
-//             }
-//             response += "]\n      },\n";
-//             // response += "        [" + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].first) + "," + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].second) + "], \n";
-//         }
+        std::string response = "{\n";
+        response += "  \"backbone\": \n    [\n";
 
-//         response.pop_back();
-//         response.pop_back();
+        for (Edge *edge : rG->v_edges)
+        {
 
-//         response += "\n    ]\n";
-//         response += "}";
+            response += "      {\n        \"line\": [ [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "],";
+            // for (int j = 0; j < edge->geo_locs.size(); j++) {
+            //     // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
+            //     response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
+            // }
+            response += " [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] ],\n";
+            response += "        \"tags\": [";
+            for (std::string tag : edge->tags)
+            {
+                response += "\"" + tag + "\", ";
+            }
+            if (edge->tags.size() > 0)
+            {
+                response.pop_back();
+                response.pop_back();
+            }
+            response += "]\n      },\n";
+            // response += "        [" + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].first) + "," + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].second) + "], \n";
+        }
 
-//         return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
-//     }
-// };
+        response.pop_back();
+        response.pop_back();
+
+        response += "\n    ]\n";
+        response += "}";
+
+        return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
+    }
+};
 
 class index_resource : public http_resource
 {
@@ -277,8 +279,8 @@ int main(int argc, char **argv)
     graph_data gdr;
     ws.register_resource("/graphdata", &gdr);
 
-    // backbone_data bdr;
-    // ws.register_resource("/backbone", &bdr);
+    backbone_data bdr;
+    ws.register_resource("/backbone", &bdr);
 
     index_resource hwr;
     ws.register_resource("/", &hwr);
