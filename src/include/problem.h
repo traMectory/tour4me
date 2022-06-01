@@ -21,7 +21,9 @@ public:
     Graph graph;
     Graph backbone;
 
-
+    double runningTime;
+    double edgeProfitImportance;
+    double coveredAreaImportance;
 
     std::vector<std::vector<double>> shortestPath;
     void fillShortestPath(std::string filename);

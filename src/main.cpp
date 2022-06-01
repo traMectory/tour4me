@@ -17,6 +17,10 @@ public:
         double lon;
         double distance;
         int algorithm;
+        double runningTime;
+        double edgeProfitImportance;
+        double coveredAreaImportance;
+
         Problem problem;
         std::string filename;
 
@@ -24,6 +28,10 @@ public:
         lon = std::stod(req.get_arg("lon"));
         distance = std::stod(req.get_arg("dis"));
         algorithm = std::stoi(req.get_arg("algo"));
+
+        runningTime = std::stod(req.get_arg("rt"));
+        edgeProfitImportance = std::stod(req.get_arg("ep"));
+        coveredAreaImportance = std::stod(req.get_arg("ca"));
 
         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
         double max_lat = min_lat + 2 * lat_pad + lat_gran;
@@ -40,14 +48,11 @@ public:
         problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
         printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         // problem.graph = problem.backbone;
-        for (std::string tag : all_tags)
-        {
-            if (req.get_arg(tag)[0] == 'd')
-            {
-                problem.pref_tags.insert(tag);
-                std::cout << req.get_arg(tag) << " - " << tag << std::endl;
+        for (int i = 0; i < all_tags.size(); i++) {
+            if (req.get_arg("tags")[i] == 'd') {
+                problem.pref_tags.insert(all_tags[i].attr);
+                std::cout << "desired: " << all_tags[i].attr << "\n";
             }
-            // std::cout << req.get_arg(tag) << " - " << tag << std::endl;
         }
 
         double best_distance = 1000000000000;
@@ -68,6 +73,10 @@ public:
         problem.start = start.id;
         problem.graph.center_lon = start.lon;
         problem.graph.center_lat = start.lat;
+
+        problem.runningTime = runningTime;
+        problem.edgeProfitImportance = edgeProfitImportance;
+        problem.coveredAreaImportance = coveredAreaImportance;
 
         problem.path.clear();
         problem.quality = -1;
@@ -153,24 +162,28 @@ class graph_data : public http_resource
         double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
         double max_lon = min_lon + 2 * lon_pad + lon_gran;
 
-        std::string response = "{\n";
-        response += "    \"max_lat\": " + std::to_string(max_lat) + ", \n";
-        response += "    \"min_lat\": " + std::to_string(min_lat) + ", \n";
-        response += "    \"max_lon\": " + std::to_string(max_lon) + ", \n";
-        response += "    \"min_lon\": " + std::to_string(min_lon) + ", \n";
-        response += "    \"center_lat\": " + std::to_string(lat) + ", \n";
-        response += "    \"center_lon\": " + std::to_string(lon) + ", \n";
-        // response += "    \"center_lat\": " + std::to_string(problem.graph.center_lat) + ", \n";
-        // response += "    \"center_lon\": " + std::to_string(problem.graph.center_lon) + ", \n";
-        response += "    \"tags\": [\n";
+        std::stringstream stream;
+
+        stream << "{\n";
+        stream << "    \"max_lat\": " << max_lat << ", \n";
+        stream << "    \"min_lat\": " << min_lat << ", \n";
+        stream << "    \"max_lon\": " << max_lon << ", \n";
+        stream << "    \"min_lon\": " << min_lon << ", \n";
+        stream << "    \"center_lat\": " << lat << ", \n";
+        stream << "    \"center_lon\": " << lon << ", \n";
+        // stream << "    \"center_lat\": " << problem.graph.center_lat << ", \n";
+        // stream << "    \"center_lon\": " << problem.graph.center_lon << ", \n";
+        stream << "    \"tags\": [\n";
         for (int i = 0; i < all_tags.size() - 1; i++)
-            response += "        \"" + all_tags[i] + "\",\n";
-        response += "        \"" + all_tags[all_tags.size() - 1] + "\"\n    ],\n";
-        response += "    \"algorithms\": [\n";
+            stream << "        [\"" << all_tags[i].attr << "\", " << all_tags[i].type << "],\n";
+        stream << "        [\"" << all_tags[all_tags.size() - 1].attr << "\", " << all_tags[all_tags.size() - 1].type << "]\n    ],\n";
+        stream << "    \"algorithms\": [\n";
         for (int i = 0; i < algorithms.size() - 1; i++)
-            response += "        \"" + algorithms[i] + "\",\n";
-        response += "        \"" + algorithms[algorithms.size() - 1] + "\"\n    ]\n";
-        response += "}";
+            stream << "        \"" << algorithms[i] << "\",\n";
+        stream << "        \"" << algorithms[algorithms.size() - 1] << "\"\n    ]\n";
+        stream << "}";
+
+        std::string response = stream.str();
 
         return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
     }
