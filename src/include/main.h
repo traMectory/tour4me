@@ -9,6 +9,7 @@
 #include "ilp_solver.h"
 #include <iomanip>
 #include <sstream>
+#include <cassert>
 
 #include "jogger_solver.h"
 

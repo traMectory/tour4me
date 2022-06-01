@@ -39,7 +39,7 @@ public:
         std::cout << filename << "\n";
         problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
         printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
-        problem.graph = problem.backbone;
+        // problem.graph = problem.backbone;
         for (std::string tag : all_tags)
         {
             if (req.get_arg(tag)[0] == 'd')

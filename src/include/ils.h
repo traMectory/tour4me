@@ -4,6 +4,8 @@
 #include <array>
 #include <map>
 #include <math.h>
+#include <cassert>
+#include "jogger_solver.h"
 
 struct TempSol {
     std::vector<int> sol;
