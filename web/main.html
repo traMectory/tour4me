@@ -25,7 +25,6 @@
                 transform: rotate(360deg);
             }
         }
-
     </style>
 
 
@@ -57,64 +56,14 @@
 
     </div>
 
-    <button class="btn btn-success" style="position:fixed; z-index: 1; top: 20px; right:20px;"
-        onclick="toGPX()">Download to GPX</button>
 
-
-
-    <!-- Modal -->
-    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="false">
-        <div class="modal-dialog modal-lg ">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title" id="settingsModalLabel">Settings</h3>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <h5>Type of roads:</h5>
-                    <div class="btn-group tagsHighway pre-scrollable"
-                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsHighway"></div>
-                    <br>
-                    <h5>Type of surfaces:</h5>
-                    <div class="btn-group mr-2 tagsSurface pre-scrollable"
-                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsSurface"></div>
-                    <br>
-                    <h5>Running time:</h5>
-                    <div class="input-group">
-                        <input type="text" class="form-control" value="2" aria-label="Running Time" id="runningTime">
-                        <span class="input-group-text">seconds</span>
-                    </div>
-                    <br>
-                    <h5>Quality Distribution:</h5>
-                    <div class="row">
-                        <div class="col col-md-2">
-                            <label class="form-label">Edge Profit</label>
-                        </div>
-                        <div class="col col-md-9">
-                            <input type="range" class="form-range" oninput="changeRanges(this, 'coveredArea')" onchange="changeRanges(this, 'coveredArea')" min="0" max="100" id="edgeProfit">
-                        </div>
-                        <div class="col col-md-1">
-                            <label class="form-label" style="float: right;" id="edgeProfitLabel">100%</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col col-md-2">
-                            <label class="form-label">Covered Area</label>
-                        </div>
-                        <div class="col col-md-9">
-                            <input type="range" class="form-range" oninput="changeRanges(this, 'edgeProfit')" onchange="changeRanges(this, 'edgeProfit')" min="0" max="100" id="coveredArea">
-                        </div>
-                        <div class="col col-md-1">
-                            <label class="form-label" style="float: right;" id="coveredAreaLabel">100%</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
+    <div class="btn-grp" style="position:fixed; z-index: 1; top: 20px; right:20px;">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#infoModal">Show Route
+            Information</button>
+        <button class="btn btn-success" onclick="toGPX()">Download to GPX</button>
     </div>
+
+
 
 
 
@@ -143,6 +92,91 @@
 
     </div>
 
+    <!-- Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="false">
+        <div class="modal-dialog modal-lg ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="settingsModalLabel">Settings</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h5>Underlying map:</h5>
+                    <div class="btn-group" style="display: block; ">
+                        <input type="radio" class="btn-check" name="mapType" id="cycle_osm" autocomplete="off" checked />
+                        <label class="btn btn-outline-success" for="cycle_osm">Backbone</label>
+                        <input type="radio" class="btn-check" name="mapType" id="osm" autocomplete="off" />
+                        <label class="btn btn-outline-success" for="osm">OSM</label>
+                    </div>
+                    <br>
+                    <h5>Type of roads:</h5>
+                    <div class="btn-group tagsHighway pre-scrollable"
+                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsHighway"></div>
+                    <br>
+                    <h5>Type of surfaces:</h5>
+                    <div class="btn-group mr-2 tagsSurface pre-scrollable"
+                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsSurface"></div>
+                    <br>
+                    <h5>Running time:</h5>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="2" aria-label="Running Time" id="runningTime">
+                        <span class="input-group-text">seconds</span>
+                    </div>
+                    <br>
+                    <h5>Quality Distribution:</h5>
+                    <div class="row">
+                        <div class="col col-md-2">
+                            <label class="form-label">Edge Profit</label>
+                        </div>
+                        <div class="col col-md-9">
+                            <input type="range" class="form-range" oninput="changeRanges(this, 'coveredArea')"
+                                onchange="changeRanges(this, 'coveredArea')" min="0" max="100" id="edgeProfit">
+                        </div>
+                        <div class="col col-md-1">
+                            <label class="form-label" style="float: right;" id="edgeProfitLabel">100%</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-md-2">
+                            <label class="form-label">Covered Area</label>
+                        </div>
+                        <div class="col col-md-9">
+                            <input type="range" class="form-range" oninput="changeRanges(this, 'edgeProfit')"
+                                onchange="changeRanges(this, 'edgeProfit')" min="0" max="100" id="coveredArea">
+                        </div>
+                        <div class="col col-md-1">
+                            <label class="form-label" style="float: right;" id="coveredAreaLabel">100%</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="false">
+        <div class="modal-dialog modal-lg ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="infoModalLabel">Route Information</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- <h5></h5> -->
+                    <div id="metadata-body">
+                        <p>No route exists yet!</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
@@ -156,6 +190,8 @@
 
         var outer_box;
         var inner_box;
+
+        var metadata = [];
 
         var tags;
         var algos;
@@ -271,7 +307,7 @@
                             $(this).addClass("avoid");
                             $(this).addClass("btn-danger");
                         } else if ($(this).hasClass("avoid")) {
-                            $(this).removeClass("desire");edgeProfit
+                            $(this).removeClass("desire"); edgeProfit
                             $(this).removeClass("btn-danger");
 
                             $(this).addClass("neutral");
@@ -295,10 +331,10 @@
             label = document.getElementById(current.id + "Label")
             label.innerHTML = (current.value) + "%"
 
-            
+
             document.getElementById(target).value = 100 - current.value;
             // $("#" + target).slider('refresh');
-            
+
             targetLabel = document.getElementById(target + "Label")
             targetLabel.innerHTML = (100 - current.value) + "%"
         }
@@ -403,11 +439,13 @@
             }
 
             var runningTime = document.getElementById("runningTime").value;
-            
+
             var edgeProfit = document.getElementById("edgeProfit").value / 100;
             var coveredArea = document.getElementById("coveredArea").value / 100;
 
             document.getElementById("overlay").style.display = "block";
+
+
 
             $.ajax({
                 url: "tour?dis=" + dis + "&lat=" + lat + "&lon=" + lon + "&algo=" + algorithm + tag_str + "&rt=" + runningTime + "&ep=" + edgeProfit + "&ca=" + coveredArea,
@@ -423,6 +461,18 @@
 
                     document.getElementById("overlay").style.display = "none";
                     map.fitBounds(line.getBounds());
+
+                    metadata = result["meta"];
+
+                    m_body = document.getElementById("metadata-body");
+
+                    m_body.innerHTML = ""
+                    metadata.forEach(element => {
+                        m_body.innerHTML += "<p>" + element + "</p>\n";
+                    });
+
+
+
                 },
                 error: function (xhr, status) {
                     document.getElementById("overlay").style.display = "none";

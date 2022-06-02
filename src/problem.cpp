@@ -105,18 +105,18 @@ void Problem::outputPath(std::string file_name) {
 
     outputFile << "    \"node_path\": [";
 
-    for (auto node = path.begin(); node != std::prev(path.end()); ++node){
-        outputFile << node->g_id << ", ";
+    for (int node : path) {
+        outputFile << graph.v_nodes[node].g_id << ", ";
     }
-    outputFile << path.begin()->id << "], \n";
+    outputFile << graph.v_nodes[path[0]].g_id << "], \n";
 
 
     outputFile << "    \"cord_path\": [";
 
-    for (auto node = path.begin(); node != std::prev(path.end()); ++node){
-        outputFile << "[" << node->lat << ", " << node->lon << "], ";
+    for (int node : path) {
+        outputFile << "[" << graph.v_nodes[node].lat << ", " << graph.v_nodes[node].lon << "], ";
     }
-    outputFile << path.begin()->id << "] \n";
+    // outputFile << "[]] \n";
 
     outputFile << "}\n";
 
@@ -138,8 +138,8 @@ void Problem::outputToGPX(std::string file_name) {
     outputFile << "    <name>" << file_name << "</name>\n";
     outputFile << "    <trkseg>\n";
 
-    for (auto node = path.begin(); node != path.end(); ++node){
-        outputFile << "      <trkpt lat=\"" << node->lat << "\" lon=\"" << node->lon << "\"></trkpt>\n";
+    for (int node : path) {
+        outputFile << "      <trkpt lat=\"" << graph.v_nodes[node].lat << "\" lon=\"" <<  graph.v_nodes[node].lon << "\"></trkpt>\n";
     }
 
     outputFile << "    </trkseg>\n";
@@ -152,17 +152,25 @@ std::string Problem::outputToString() {
     std::string outputString = "{\n    \"path\": [\n";
 
     for (int i = 0; i < path.size() - 1; i++){
-        outputString += "        [" + std::to_string(path[i].lat) + "," + std::to_string(path[i].lon) + "], \n";
+        outputString += "        [" + std::to_string(graph.v_nodes[path[i]].lat) + "," + std::to_string(graph.v_nodes[path[i]].lon) + "], \n";
 
-        Edge* edge = graph.getEdge(path[i].id, path[i+1].id);
+        Edge* edge = graph.getEdge(graph.v_nodes[path[i]].id, graph.v_nodes[path[i+1]].id);
+        bool reverse = graph.v_nodes[path[i]].g_id < graph.v_nodes[path[i+1]].g_id;
         for (int j = 0; j < edge->geo_locs.size(); j++) {
-            auto pair = edge->geo_locs[path[i].g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
+            auto pair = edge->geo_locs[reverse ? j : edge->geo_locs.size() - j - 1];
             outputString += "        [" + std::to_string(pair.first) + "," + std::to_string(pair.second) + "], \n";
         }
     }
 
-    outputString += "        [" + std::to_string(path.begin()->lat) + "," + std::to_string(path.begin()->lon) + "] \n";
+    outputString += "        [" + std::to_string(graph.v_nodes[path[0]].lat) + "," + std::to_string(graph.v_nodes[path[0]].lon) + "] \n";
 
+    outputString += "    ],\n";
+
+    outputString += "    \"meta\": [\n";
+    for (int i = 0; i < metadata.size() - 1; i++) {
+        outputString += "        \"" + metadata[i] + "\",\n";
+    }
+    outputString += "        \"" + metadata[metadata.size() - 1] + "\"\n";
     outputString += "    ]\n}";
 
     return outputString;

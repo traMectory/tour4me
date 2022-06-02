@@ -531,7 +531,7 @@ SolveStatus ILP::solve(Problem *P)
                     // printf("%d\n", i);
 
                     if (prev != -1) {
-                        P->path.push_back(P->graph.v_nodes[rG->v_nodes[i].g_id]);
+                        P->path.push_back(rG->v_nodes[i].g_id);
                         if (!rG->edgeExists(prev, i)) {
 
                             // printf("%f\n", e[k][i][prev].get(GRB_DoubleAttr_X));

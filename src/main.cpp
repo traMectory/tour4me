@@ -13,6 +13,9 @@ class calculate_tour : public http_resource
 public:
     const std::shared_ptr<http_response> render_GET(const http_request &req)
     {
+
+        auto init_time_1 = std::chrono::high_resolution_clock::now();
+
         double lat;
         double lon;
         double distance;
@@ -48,8 +51,10 @@ public:
         problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
         printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         // problem.graph = problem.backbone;
-        for (int i = 0; i < all_tags.size(); i++) {
-            if (req.get_arg("tags")[i] == 'd') {
+        for (int i = 0; i < all_tags.size(); i++)
+        {
+            if (req.get_arg("tags")[i] == 'd')
+            {
                 problem.pref_tags.insert(all_tags[i].attr);
                 std::cout << "desired: " << all_tags[i].attr << "\n";
             }
@@ -88,8 +93,11 @@ public:
 
         problem.target_distance = distance;
 
-        SolveStatus status;
 
+        auto init_time_2 = std::chrono::high_resolution_clock::now();
+        auto algo_time_1 = std::chrono::high_resolution_clock::now();
+
+        SolveStatus status;
         switch (algorithm)
         {
         case 0:
@@ -111,6 +119,17 @@ public:
             break;
         }
         }
+        auto algo_time_2 = std::chrono::high_resolution_clock::now();
+
+        auto init_time_int = duration_cast<std::chrono::milliseconds>(init_time_2 - init_time_1);
+        auto algo_time_int = duration_cast<std::chrono::milliseconds>(algo_time_2 - algo_time_1);
+
+        problem.metadata.push_back("Initialization time (ms): " + std::to_string(init_time_int.count()));
+        problem.metadata.push_back("Algorithm computation time (ms): " + std::to_string(algo_time_int.count()));
+        problem.metadata.push_back("Profit: " + std::to_string(problem.getProfit(problem.path)) + " (theoretical upper bound: " + std::to_string(problem.target_distance) + ")");
+        problem.metadata.push_back("Area: " + std::to_string(problem.getArea(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
+        // problem.metadata.push_back("Quality: " + std::to_string(problem.getQuality(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
+
 
         switch (status)
         {

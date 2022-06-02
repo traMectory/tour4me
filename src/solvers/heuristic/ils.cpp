@@ -389,7 +389,7 @@ SolveStatus ILS::solve(Problem *problem)
     solution.profit = 0;
 
     for (int i = 0; i < solution.sol.size(); i++) {
-        solution.sol[i] = P->path[i].id;
+        solution.sol[i] = P->path[i];
 
         if (i > 0) {
             Edge *e = P->graph.getEdge(solution.sol[i - 1], solution.sol[i]);
@@ -419,7 +419,7 @@ SolveStatus ILS::solve(Problem *problem)
 
     for (int v_sol : solution.sol)
     {
-        P->path.push_back(P->graph.v_nodes[v_sol]);
+        P->path.push_back(v_sol);
     }
 
     if (C_min <= solution.length && solution.length <= C_max)

@@ -30,7 +30,7 @@ public:
 
     Node getStart() { return graph.v_nodes[start]; };
 
-    std::vector<Node> path;
+    std::vector<int> path;
     double quality = -1;
 
     double target_distance;
@@ -47,4 +47,6 @@ public:
     double getProfit(std::vector<int> path);
     double getArea(std::vector<int> path);
     double getLength(std::vector<int> path);
+
+    std::vector<std::string> metadata;
 };
