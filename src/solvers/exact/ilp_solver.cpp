@@ -46,7 +46,7 @@ Graph* reduceGraph(Graph* G, int source, int number_of_vertices)
         std::unordered_map<int, int> edge_list;
 
 
-        reducedGraph->m_edges.push_back(edge_list);
+        // reducedGraph->m_edges.push_back(edge_list);
 
 
         reducedGraph->g_id_node.insert(std::make_pair(G->v_nodes[currentNode].id, c_nodes));
@@ -73,9 +73,8 @@ Graph* reduceGraph(Graph* G, int source, int number_of_vertices)
             continue;
 
 
-        for ( auto &o_pair : G->getEdges(G->v_nodes[currentNode]) ) {
-            int neighborId = o_pair.first;
-            Edge* edge = G->v_edges[o_pair.second];
+        for ( Edge* edge : G->v_nodes[currentNode].incident ) {
+            int neighborId = edge->s == currentNode ? edge->t : edge->s;
 
             reducedEdges.push_back(edge);
 
@@ -97,11 +96,9 @@ Graph* reduceGraph(Graph* G, int source, int number_of_vertices)
     }
 
     for (Edge* edge : reducedEdges) {
-        if (reducedNodes.contains(edge->s.id) && reducedNodes.contains(edge->t.id))
+        if (reducedNodes.contains(edge->s) && reducedNodes.contains(edge->t))
         {
-            Node n_s = reducedGraph->v_nodes[reducedGraph->getNode(edge->s.id)];
-            Node n_t = reducedGraph->v_nodes[reducedGraph->getNode(edge->t.id)];
-            Edge* rEdge = new Edge(n_s, n_t, edge->cost);
+            Edge* rEdge = new Edge(reducedGraph->getNode(edge->s), reducedGraph->getNode(edge->t), edge->cost);
 
             rEdge->tags = edge->tags;
 
@@ -136,8 +133,9 @@ Graph* reduceGraph(Graph* G, int source, int number_of_vertices)
 }
 
 Graph* simplifyGraph(Graph* G, int start) {
-    bool reduced = true;
-    std::set<int> removeEdges;
+    return G;
+    // bool reduced = true;
+    // std::set<int> removeEdges;
     // while (reduced) {
     //     reduced = false;
 
@@ -203,50 +201,50 @@ Graph* simplifyGraph(Graph* G, int start) {
     //     }
     // }
 
-    Graph* simplifiedG = new Graph();
+    // Graph* simplifiedG = new Graph();
     
-    int c_nodes = 0;
-    for (Node node : G->v_nodes) {
-        if (G->m_edges[node.id].size() <= 1)
-            continue;
+    // int c_nodes = 0;
+    // for (Node node : G->v_nodes) {
+    //     if (G->m_edges[node.id].size() <= 1)
+    //         continue;
         
-        Node sNode(c_nodes, node.g_id, node.lat, node.lon);
-        simplifiedG->v_nodes.push_back(sNode);
+    //     Node sNode(c_nodes, node.g_id, node.lat, node.lon);
+    //     simplifiedG->v_nodes.push_back(sNode);
 
-        std::unordered_map<int, int> edge_list;
+    //     std::unordered_map<int, int> edge_list;
 
-        simplifiedG->m_edges.push_back(edge_list);
+    //     // simplifiedG->m_edges.push_back(edge_list);
 
-        simplifiedG->g_id_node.insert(std::make_pair(node.g_id, c_nodes));
-        c_nodes++;
-    }
-    printf("edges\n");
-    int c_edges = 0;
-    for (Edge* edge : G->v_edges) {
-        // if (removeEdges.contains(c_edges)) {
-        //     delete edge;
-        //     continue;
-        // }
-        if (G->m_edges[edge->s.id].size() <= 1 || G->m_edges[edge->t.id].size() <= 1) {
-            delete edge;
-            continue;
-        }
-        Node n_s = simplifiedG->v_nodes[simplifiedG->getNode(edge->s.g_id)];
-        Node n_t = simplifiedG->v_nodes[simplifiedG->getNode(edge->t.g_id)];
-        Edge* rEdge = new Edge(n_s, n_t, edge->cost);
-        rEdge->profit = edge->profit;
+    //     simplifiedG->g_id_node.insert(std::make_pair(node.g_id, c_nodes));
+    //     c_nodes++;
+    // }
+    // printf("edges\n");
+    // int c_edges = 0;
+    // for (Edge* edge : G->v_edges) {
+    //     // if (removeEdges.contains(c_edges)) {
+    //     //     delete edge;
+    //     //     continue;
+    //     // }
+    //     if (G->m_edges[edge->s].size() <= 1 || G->m_edges[edge->t].size() <= 1) {
+    //         delete edge;
+    //         continue;
+    //     }
+    //     Node n_s = simplifiedG->v_nodes[simplifiedG->getNode(edge->s.g_id)];
+    //     Node n_t = simplifiedG->v_nodes[simplifiedG->getNode(edge->t.g_id)];
+    //     Edge* rEdge = new Edge(n_s, n_t, edge->cost);
+    //     rEdge->profit = edge->profit;
 
-        rEdge->tags = edge->tags;
+    //     rEdge->tags = edge->tags;
 
-        simplifiedG->addEdge(rEdge);
+    //     simplifiedG->addEdge(rEdge);
 
-        c_edges++;
-    }
+    //     c_edges++;
+    // }
 
-    delete G;
-    printf("Simplified graph with %ld nodes and %ld edges\n", simplifiedG->v_nodes.size(), simplifiedG->v_edges.size());
+    // delete G;
+    // printf("Simplified graph with %ld nodes and %ld edges\n", simplifiedG->v_nodes.size(), simplifiedG->v_edges.size());
 
-    return simplifiedG;
+    // return simplifiedG;
 }
 
 
@@ -312,8 +310,8 @@ SolveStatus ILP::solve(Problem *P)
         // for (int i = 0; i < m; i++) {
         //     Edge* edge = rG->v_edges[i];
 
-        //     int v_i = edge->s.id;
-        //     int v_j = edge->t.id;
+        //     int v_i = edge->s;
+        //     int v_j = edge->t;
 
         //     std::string ij = std::to_string(v_i) + "-" + std::to_string(v_j);
 
@@ -375,8 +373,8 @@ SolveStatus ILP::solve(Problem *P)
         // for (int i = 0; i < m; i++)
         // {
         //     Edge *edge = rG->v_edges[i];
-        //     int l = edge->s.id;
-        //     int r = edge->t.id;
+        //     int l = edge->s;
+        //     int r = edge->t;
 
         //     if (l>r) {
         //         return SolveStatus::Unsolved;
@@ -387,8 +385,8 @@ SolveStatus ILP::solve(Problem *P)
         for (int i = 0; i < m; i++)
         {
             Edge *edge = rG->v_edges[i];
-            Node l = edge->s;
-            Node r = edge->t;
+            Node l = P->graph.v_nodes[edge->s];
+            Node r = P->graph.v_nodes[edge->t];
             // std::cout << (l.lat + r.lat) * (l.lon - r.lon) << "\n";
             // std::cout << (r.lat + l.lat) * (r.lon - l.lon) << "\n";
             for (int k = 0; k < L - 1; k++)
@@ -423,8 +421,8 @@ SolveStatus ILP::solve(Problem *P)
         for (int i = 0; i < m; i++)
         {
             Edge *edge = rG->v_edges[i];
-            int l = edge->s.id;
-            int r = edge->t.id;
+            int l = edge->s;
+            int r = edge->t;
 
             budget_constr += h[l][r] * edge->cost;
         }
@@ -512,10 +510,6 @@ SolveStatus ILP::solve(Problem *P)
                     if ((int) e[k][i][j].get(GRB_DoubleAttr_X) == 1) {
                         int l = i < j ? i : j;
                         int r = i < j ? j : i;
-
-                        // printf("b[%d][%d]: %d, h: %d, ", l, r, (int) b[l][r].get(GRB_DoubleAttr_X), (int) h[l][r].get(GRB_DoubleAttr_X));
-                        if (rG->edgeExists(i, j))
-                            length += rG->getEdge(i,j)->cost;
                     }
                 }
             }

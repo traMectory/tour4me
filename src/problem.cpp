@@ -58,10 +58,9 @@ void Problem::fillShortestPath(std::string filename)
             if (bestKnownDist != distance)
                 continue;
 
-            for (auto &o_pair : graph.getEdges(graph.v_nodes[currentNode]))
+            for (Edge* edge : graph.v_nodes[currentNode].incident)
             {
-                int neighborId = o_pair.first;
-                Edge *edge = graph.v_edges[o_pair.second];
+                int neighborId = edge->s == currentNode ? edge->t : edge->s;
 
                 double newDistance = bestKnownDist + edge->cost;
 

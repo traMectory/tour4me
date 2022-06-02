@@ -1,8 +1,9 @@
-#ifndef NODE_H
-#define NODE_H
+#pragma once
 
+#include <list>
 #include <math.h>
-#include <iostream>
+#include "node.fwd.h"
+#include "edge.fwd.h"
 
 class Node
 {
@@ -10,13 +11,16 @@ public:
     double lat, lon;
     long int g_id;
     int id;
-    
-    Node(int n_id, long int n_g_id, double n_lat, double n_lon) {
+
+    std::list<Edge *> incident;
+
+    Node(int n_id, long int n_g_id, double n_lat, double n_lon)
+    {
         lat = n_lat;
         lon = n_lon;
         id = n_id;
         g_id = n_g_id;
-    }
+    };
 
     Node() = default;
 
@@ -26,5 +30,3 @@ public:
     int compare(Node no);
     int isRight(Node l1, Node l2);
 };
-
-#endif

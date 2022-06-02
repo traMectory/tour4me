@@ -48,6 +48,13 @@ public:
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
         std::cout << filename << "\n";
+        
+        std::ifstream f(filename.c_str());
+        if (f.good()) {
+            std::cout << filename << " Was not found!\n";
+            return std::shared_ptr<string_response>(new string_response("Grid was not found", 404, "text/plain"));
+        }
+
         problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
         printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         // problem.graph = problem.backbone;
@@ -74,6 +81,8 @@ public:
                 start = v;
             }
         }
+
+        std::cout << start.id << "\n";
 
         problem.start = start.id;
         problem.graph.center_lon = start.lon;
@@ -208,84 +217,84 @@ class graph_data : public http_resource
     }
 };
 
-class backbone_data : public http_resource
-{
-    const std::shared_ptr<http_response> render_GET(const http_request &req)
-    {
+// class backbone_data : public http_resource
+// {
+//     const std::shared_ptr<http_response> render_GET(const http_request &req)
+//     {
 
-        Node start;
-        double best_distance = 1000000000000;
-        double lat = std::stod(req.get_arg("lat"));
-        double lon = std::stod(req.get_arg("lon"));
+//         Node start;
+//         double best_distance = 1000000000000;
+//         double lat = std::stod(req.get_arg("lat"));
+//         double lon = std::stod(req.get_arg("lon"));
 
-        double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
-        double max_lat = min_lat + 2 * lat_pad + lat_gran;
-        double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
-        double max_lon = min_lon + 2 * lon_pad + lon_gran;
+//         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
+//         double max_lat = min_lat + 2 * lat_pad + lat_gran;
+//         double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
+//         double max_lon = min_lon + 2 * lon_pad + lon_gran;
 
-        std::stringstream stream;
-        stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
-        std::string filename = stream.str();
+//         std::stringstream stream;
+//         stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
+//         std::string filename = stream.str();
 
-        Problem problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
-        problem.graph = problem.backbone;
-        for (Node v : problem.graph.v_nodes)
-        {
-            double dis = v.distance(lat, lon);
-            // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
-            if (dis < best_distance)
-            {
+//         Problem problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
+//         problem.graph = problem.backbone;
+//         for (Node v : problem.graph.v_nodes)
+//         {
+//             double dis = v.distance(lat, lon);
+//             // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
+//             if (dis < best_distance)
+//             {
 
-                best_distance = dis;
-                start = v;
-            }
-        }
+//                 best_distance = dis;
+//                 start = v;
+//             }
+//         }
 
-        problem.start = start.id;
+//         problem.start = start.id;
 
-        Graph *rG = reduceGraph(&problem.graph, problem.start, 200);
-        int prev_n = 1000000000;
-        while (rG->v_nodes.size() < prev_n)
-        {
-            prev_n = rG->v_nodes.size();
-            rG = simplifyGraph(rG, problem.start);
-        }
+//         Graph *rG = reduceGraph(&problem.graph, problem.start, 200);
+//         int prev_n = 1000000000;
+//         while (rG->v_nodes.size() < prev_n)
+//         {
+//             prev_n = rG->v_nodes.size();
+//             rG = simplifyGraph(rG, problem.start);
+//         }
 
-        std::string response = "{\n";
-        response += "  \"backbone\": \n    [\n";
+//         std::string response = "{\n";
+//         response += "  \"backbone\": \n    [\n";
 
-        for (Edge *edge : rG->v_edges)
-        {
+//         for (Edge *edge : rG->v_edges)
+//         {
 
-            response += "      {\n        \"line\": [ [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "],";
-            // for (int j = 0; j < edge->geo_locs.size(); j++) {
-            //     // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
-            //     response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
-            // }
-            response += " [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] ],\n";
-            response += "        \"tags\": [";
-            for (std::string tag : edge->tags)
-            {
-                response += "\"" + tag + "\", ";
-            }
-            if (edge->tags.size() > 0)
-            {
-                response.pop_back();
-                response.pop_back();
-            }
-            response += "]\n      },\n";
-            // response += "        [" + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].first) + "," + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].second) + "], \n";
-        }
+//             response += "      {\n        \"line\": [ [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "],";
+//             // for (int j = 0; j < edge->geo_locs.size(); j++) {
+//             //     // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
+//             //     response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
+//             // }
+//             response += " [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] ],\n";
+//             response += "        \"tags\": [";
+//             for (std::string tag : edge->tags)
+//             {
+//                 response += "\"" + tag + "\", ";
+//             }
+//             if (edge->tags.size() > 0)
+//             {
+//                 response.pop_back();
+//                 response.pop_back();
+//             }
+//             response += "]\n      },\n";
+//             // response += "        [" + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].first) + "," + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].second) + "], \n";
+//         }
 
-        response.pop_back();
-        response.pop_back();
+//         response.pop_back();
+//         response.pop_back();
 
-        response += "\n    ]\n";
-        response += "}";
+//         response += "\n    ]\n";
+//         response += "}";
 
-        return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
-    }
-};
+//         return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
+//     }
+// };
 
 class index_resource : public http_resource
 {
@@ -298,12 +307,31 @@ public:
 };
 
 int main(int argc, char **argv)
-{
-    // problem.graph = problem.backbone;
+{    
+    parseOptions(argc, argv);
+    
+    if (test) {
+        Problem problem = Problem("../input/grid-51.6250-51.1250-7.9375-7.1875.txt", "../input/grid-51.6250-51.1250-7.9375-7.1875_B.txt");
+
+        problem.start = 156666;
+
+        problem.runningTime = 1;
+        problem.edgeProfitImportance = 1;
+        problem.coveredAreaImportance = 0;
+        problem.pref_tags.insert("path");
+        problem.pref_tags.insert("track");
+
+        problem.target_distance = 50000;
+
+        Jogger solver;
+        std::cout << "TESTING: " << (solver.solve(&problem) != SolveStatus::Unsolved ? "succesfull" : "unsuccesfull") << "\n";
+
+        return 0;
+    }
 
     printf("Starting server\n");
 
-    webserver ws = create_webserver(8080);
+    webserver ws = create_webserver(deploy ? 80 : 8080);
 
     calculate_tour uar;
     ws.register_resource("/tour", &uar);
@@ -311,8 +339,8 @@ int main(int argc, char **argv)
     graph_data gdr;
     ws.register_resource("/graphdata", &gdr);
 
-    backbone_data bdr;
-    ws.register_resource("/backbone", &bdr);
+    // backbone_data bdr;
+    // ws.register_resource("/backbone", &bdr);
 
     index_resource hwr;
     ws.register_resource("/", &hwr);

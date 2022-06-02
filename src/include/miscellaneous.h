@@ -5,6 +5,8 @@
 extern std::string algoType;
 
 extern bool gpx;
+extern bool deploy;
+extern bool test;
 
 enum class SolveStatus { Optimal, Feasible, Unsolved };
 

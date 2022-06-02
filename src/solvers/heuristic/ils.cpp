@@ -70,10 +70,9 @@ double ILS::shortestPath(int start, int end)
         if (bestKnownDist != actual)
             continue;
 
-        for (auto &o_pair : P->graph.getEdges(P->graph.v_nodes[currentNode]))
+        for (Edge* edge : P->graph.v_nodes[currentNode].incident)
         {
-            int neighborId = o_pair.first;
-            Edge *edge = P->graph.v_edges[o_pair.second];
+            int neighborId =  edge->s == currentNode ? edge->t : edge->s;
 
             double newDistance = bestKnownDist + edge->cost;
 
@@ -108,25 +107,18 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
         return false;
     }
 
-    std::vector<int> copy_path(solution->sol.size());
+    // std::vector<std::pair<int, int>> neighbours;
 
-    for (int i = 0; i < solution->sol.size(); i++)
-    {
-        copy_path[i] = solution->sol[i];
-    }
-
-    std::vector<std::pair<int, int>> neighbours;
-
-    for (auto pair : P->graph.getEdges(start))
-    {
-        neighbours.push_back(pair);
-    }
+    // for (auto pair : P->graph.getEdges(start))
+    // {
+    //     neighbours.push_back(pair);
+    // }
 
     // std::random_shuffle(neighbours.begin(), neighbours.end());
 
-    for (auto &pair : neighbours)
+    for (Edge* edge : P->graph.v_nodes[start].incident)
     {
-        int neigh = pair.first;
+        int neigh = edge->s == start ? edge->t : edge->s;
         if (solution->cut_loc > 0)
         {
             if (neigh == solution->sol[solution->cut_loc - 1])
@@ -135,24 +127,22 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
             }
         }
 
-        Edge *e = P->graph.v_edges[pair.second];
-
         auto itPos = solution->sol.begin() + solution->cut_loc + 1;
 
         solution->sol.insert(itPos, neigh);
-        solution->length += e->cost;
+        solution->length += edge->cost;
 
-        if (!solution->visitedEdges.contains(e))
+        if (!solution->visitedEdges.contains(edge))
         {
-            solution->visitedEdges[e] = 0;
+            solution->visitedEdges[edge] = 0;
         }
 
-        if (solution->visitedEdges[e] == 0)
+        if (solution->visitedEdges[edge] == 0)
         {
-            solution->profit += e->profit;
+            solution->profit += edge->profit;
         }
 
-        solution->visitedEdges[e]++;
+        solution->visitedEdges[edge]++;
         solution->cut_loc++;
 
 
@@ -160,25 +150,21 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
         {
             solution->sol.erase(solution->sol.begin() + solution->cut_loc + 1);
 
-            for (int i = 0; i < solution->sol.size() - 1; i++)
-            {
-                assert(P->graph.getEdge(solution->sol[i], solution->sol[i + 1]) != nullptr);
-            }
 
             return true;
         }
 
-        if (insert(solution, dist - e->cost, minProfit, maxDepth - 1))
+        if (insert(solution, dist - edge->cost, minProfit, maxDepth - 1))
         {
             return true;
         }
 
-        solution->visitedEdges[e]--;
+        solution->visitedEdges[edge]--;
 
-        solution->length -= e->cost;
-        if (solution->visitedEdges[e] == 0)
+        solution->length -= edge->cost;
+        if (solution->visitedEdges[edge] == 0)
         {
-            solution->profit -= e->profit;
+            solution->profit -= edge->profit;
         }
         solution->cut_loc--;
         solution->sol.erase(solution->sol.begin() + solution->cut_loc + 1);
@@ -187,12 +173,6 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
         {
             assert(pair.second >= 0);
         }
-    }
-
-    assert(solution->sol.size() >= 2);
-    for (int i = 0; i < solution->sol.size(); i++)
-    {
-        assert(copy_path[i] == solution->sol[i]);
     }
 
     return false;

@@ -27,6 +27,8 @@ double lon_gran = 0.75 / 2;
 double lon_pad = 0.75 / 4;
 
 bool gpx = false;
+bool deploy = false;
+bool test = false;
 
 enum tagType
 {

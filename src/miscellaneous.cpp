@@ -9,8 +9,8 @@ void parseOptions(int argc, char* argv[]) {
 
     options.add_options()
         ("a, algorithm", "Algorithm Option", cxxopts::value<std::string>()->default_value("algorithm"))
-        ("h, help", "Print usage")
-        ("o, output", "Print Solution")
+        ("d, deploy", "Deploy the server")
+        ("t, test", "Test an example instance")
         ("g, gpx", "Output file as gpx file")
         ("f, filename", "input file", cxxopts::value<std::string>()->default_value("1kArbeit"));
         // ("t", "tmp_dictionary", cxxopts::value<std::string>()->default_value("D:/GIT/C++/geowordle_core_cmake"))
@@ -22,6 +22,12 @@ void parseOptions(int argc, char* argv[]) {
         printUsage();
         exit(0);
     }
+
+    if (result.count("deploy"))
+        deploy = true;
+
+    if (result.count("test"))
+        test = true;
 
     if (result.count("gpx"))
         gpx = true;

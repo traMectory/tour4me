@@ -15,7 +15,7 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
     // std::set<Node> sptSet;
  
     // Parent array to store shortest path tree
-    std::unordered_map<int, int> parent;
+    std::unordered_map<int, std::pair<int, double>> parent;
  
     // Distance of source vertex from itself is always 0
     dist.insert(std::make_pair(source, 0.0));
@@ -53,9 +53,8 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
             continue;
 
 
-        for ( auto &o_pair : G->getEdges(G->v_nodes[currentNode]) ) {
-            int neighborId = o_pair.first;
-            Edge* edge = G->v_edges[o_pair.second];
+        for ( Edge* edge : G->v_nodes[currentNode].incident)  {
+            int neighborId = edge->s == currentNode ? edge->t.id : edge->s;
 
             double newDistance = bestKnownDist + (edge->cost / (edge->profit + 0.1));
             double newActual = actual + edge->cost;
@@ -72,7 +71,7 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
                 queue.push(std::make_pair(newDistance, std::make_pair(neighborId, newActual)));
                 dist[neighborId] = newDistance;
                 actual_dist[neighborId] = newActual;
-                parent[neighborId] = currentNode;
+                parent[neighborId] = std::make_pair(currentNode, edge->cost);
             }
         }
     }
@@ -91,11 +90,8 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
         double length = 0;
 
         while (current != source) {
-            if (!G->edgeExists(current, parent[current]))
-                // printf("Edge does not exist: %d, %d\n", current, parent[current]);
-                break;
-            length += G->getEdge(current, parent[current])->cost;
-            current = parent[current];
+            length += parent[current].second;
+            current = parent[current].first;
             path.insert(path.begin(), current);
         }
         output.insert(std::make_pair(pair.first, path));
