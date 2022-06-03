@@ -368,8 +368,9 @@ SolveStatus ILS::solve(Problem *problem)
     solution.length = 0;
     solution.profit = 0;
 
-    for (int i = 0; i < solution.sol.size(); i++) {
-        solution.sol[i] = P->path[i];
+    int i = 0;
+    for (int v : P->path) {
+        solution.sol[i] = v;
 
         if (i > 0) {
             Edge *e = P->graph.getEdge(solution.sol[i - 1], solution.sol[i]);
@@ -387,6 +388,7 @@ SolveStatus ILS::solve(Problem *problem)
             solution.length += e->cost;
             solution.visitedEdges[e]++;
         }
+        i++;
     }
 
     printf("Before; profit: %f, length: %f\n", solution.profit, solution.length);

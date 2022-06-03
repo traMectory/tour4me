@@ -107,7 +107,7 @@ void Problem::outputPath(std::string file_name) {
     for (int node : path) {
         outputFile << graph.v_nodes[node].g_id << ", ";
     }
-    outputFile << graph.v_nodes[path[0]].g_id << "], \n";
+    outputFile << graph.v_nodes[*(path.begin())].g_id << "], \n";
 
 
     outputFile << "    \"cord_path\": [";
@@ -150,18 +150,18 @@ std::string Problem::outputToString() {
 
     std::string outputString = "{\n    \"path\": [\n";
 
-    for (int i = 0; i < path.size() - 1; i++){
-        outputString += "        [" + std::to_string(graph.v_nodes[path[i]].lat) + "," + std::to_string(graph.v_nodes[path[i]].lon) + "], \n";
+    for (auto it = path.begin(), end = --path.end(); it != end; ++it) {
+        outputString += "        [" + std::to_string(graph.v_nodes[*it].lat) + "," + std::to_string(graph.v_nodes[*it].lon) + "], \n";
 
-        Edge* edge = graph.getEdge(graph.v_nodes[path[i]].id, graph.v_nodes[path[i+1]].id);
-        bool reverse = graph.v_nodes[path[i]].g_id < graph.v_nodes[path[i+1]].g_id;
+        Edge* edge = graph.getEdge(*it, *(std::next(it)));
+        bool reverse = graph.v_nodes[*it].g_id < graph.v_nodes[*(std::next(it))].g_id;
         for (int j = 0; j < edge->geo_locs.size(); j++) {
             auto pair = edge->geo_locs[reverse ? j : edge->geo_locs.size() - j - 1];
             outputString += "        [" + std::to_string(pair.first) + "," + std::to_string(pair.second) + "], \n";
         }
     }
 
-    outputString += "        [" + std::to_string(graph.v_nodes[path[0]].lat) + "," + std::to_string(graph.v_nodes[path[0]].lon) + "] \n";
+    outputString += "        [" + std::to_string(graph.v_nodes[*(path.begin())].lat) + "," + std::to_string(graph.v_nodes[*(path.begin())].lon) + "] \n";
 
     outputString += "    ],\n";
 
@@ -189,50 +189,40 @@ void Problem::calculateProfit(Graph* G) {
     }
 }
 
-double Problem::getProfit(std::vector<int> path) {
+double Problem::getProfit(std::list<int> path) {
     std::set<Edge*> edgSet;
 
     double quality = 0.0;
 
-    for (int i = 0; i < path.size() - 1; i++)
-    {
-        Edge* edge = graph.getEdge(path[i], path[i+1]);
-        
-        if (!edgSet.contains(edge)) {
+    for (auto it = path.begin(), end = --path.end(); it != end; ++it) {
+        int neigh = *(std::next(it));
+        Edge* edge = graph.getEdge(*it, neigh);
+
+
+        if (!edgSet.contains(edge) && edge != nullptr) {
             
             quality += edge->cost * edge->profit;
             edgSet.insert(edge);
         }
+
     }
 
     return quality;
 }
 
-double Problem::getArea(std::vector<int> path) {
+double Problem::getArea(std::list<int> path) {
     std::set<Edge*> edgSet;
 
     double quality = 0.0;
 
-    for (int i = 0; i < path.size() - 1; i++)
-    {
-        Edge* edge = graph.getEdge(path[i], path[i+1]);
-        
-        if (!edgSet.contains(edge)) {
-            
-            quality += edge->cost * edge->profit;
-            edgSet.insert(edge);
-        }
-    }
-
     return quality;
 }
 
-double Problem::getLength(std::vector<int> path) {
+double Problem::getLength(std::list<int> path) {
     double length = 0.0;
 
-    for (int i = 0; i < path.size() - 1; i++)
-    {
-        Edge* edge = graph.getEdge(path[i], path[i+1]);
+    for (auto it = path.begin(), end = --path.end(); it != end; ++it) {
+        Edge* edge = graph.getEdge(*it, *(std::next(it)));
         
         length += edge->cost;
     }

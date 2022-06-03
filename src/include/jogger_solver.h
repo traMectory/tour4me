@@ -2,6 +2,7 @@
 
 #include "solver.h"
 #include "problem.h"
+#include <list>
 
 class Jogger: public Solver {
 

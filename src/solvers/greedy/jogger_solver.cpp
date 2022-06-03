@@ -1,12 +1,18 @@
 #include "jogger_solver.h"
 
 
-std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis, double udis)
+std::list<std::pair<int, std::list<int>>> ring(Graph* G, int source, double ldis, double udis)
 {
     // The output array. dist[i] will hold the shortest
     // distance from src to i
-    std::unordered_map<int, double> dist;
-    std::unordered_map<int, double> actual_dist;
+    double dist[G->v_nodes.size()];
+
+    std::fill_n(dist, G->v_nodes.size(), 2147483647);
+
+    double actual_dist[G->v_nodes.size()];
+
+    std::cout << dist[0] << "\n";
+    
     std::priority_queue<pi, std::vector<pi>, std::greater<pi>> queue;
  
     // sptSet[i] will true if vertex i is included / in
@@ -15,12 +21,15 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
     // std::set<Node> sptSet;
  
     // Parent array to store shortest path tree
-    std::unordered_map<int, std::pair<int, double>> parent;
+    std::pair<int, double> parent[G->v_nodes.size()];
  
     // Distance of source vertex from itself is always 0
-    dist.insert(std::make_pair(source, 0.0));
-    actual_dist.insert(std::make_pair(source, 0.0));
+    dist[source] = 0.0;
+    actual_dist[source] = 0.0;
+    
     queue.push(std::make_pair(0.0, std::make_pair(source, 0.0)));
+
+    std::list<int> visited;
 
     while (queue.size() > 0) {
         pi current = queue.top();
@@ -30,8 +39,7 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
         int currentNode = current.second.first;
         double actual = current.second.second;
 
-        auto bestKnown = dist.find(currentNode);
-        double bestKnownDist = bestKnown->second;
+        double bestKnownDist = dist[currentNode];
 
         // auto bestKnownActual = actual_dist.find(currentNode);
         // double bestKnownActual = 
@@ -43,9 +51,9 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
 
         // printf("%ld\n", bestKnown);
 
-        if (bestKnown == dist.end()) {
-            dist.insert(std::make_pair(currentNode, distance));
-            actual_dist.insert(std::make_pair(currentNode, actual));
+        if (bestKnownDist == 2147483647) {
+            dist[currentNode] = distance;
+            actual_dist[currentNode] = actual;
             bestKnownDist = distance;
         }
 
@@ -54,7 +62,7 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
 
 
         for ( Edge* edge : G->v_nodes[currentNode].incident)  {
-            int neighborId = edge->s == currentNode ? edge->t.id : edge->s;
+            int neighborId = edge->s == currentNode ? edge->t : edge->s;
 
             double newDistance = bestKnownDist + (edge->cost / (edge->profit + 0.1));
             double newActual = actual + edge->cost;
@@ -62,39 +70,38 @@ std::unordered_map<int, std::vector<int>> ring(Graph* G, int source, double ldis
             if (newActual > udis)
                 continue;
 
-            if (dist.find(neighborId) == dist.end())
-                dist.insert(std::make_pair(neighborId, 2147483647));
-                actual_dist.insert(std::make_pair(neighborId, 2147483647));
-
             if (newDistance < dist[neighborId])
             {
                 queue.push(std::make_pair(newDistance, std::make_pair(neighborId, newActual)));
                 dist[neighborId] = newDistance;
                 actual_dist[neighborId] = newActual;
                 parent[neighborId] = std::make_pair(currentNode, edge->cost);
+
+                visited.push_back(neighborId);
             }
         }
     }
 
 
-    std::unordered_map<int, std::vector<int>> output;
+    std::list<std::pair<int, std::list<int>>> output;
+    // std::unordered_map<int, std::vector<int>> output;
 
-    for (auto &pair : actual_dist) {
-        if (pair.second < ldis)
+    for (int vis : visited) {
+        if (actual_dist[vis] < ldis)
             continue;
         
-        int current = pair.first;
-        std::vector<int> path;
-        path.insert(path.begin(), current);
+        int current = vis;
+        std::list<int> path;
+        path.push_front(current);
 
         double length = 0;
 
         while (current != source) {
             length += parent[current].second;
             current = parent[current].first;
-            path.insert(path.begin(), current);
+            path.push_front(current);
         }
-        output.insert(std::make_pair(pair.first, path));
+        output.push_back(std::make_pair(current, path));
 
     }
 
@@ -127,9 +134,9 @@ SolveStatus Jogger::solve(Problem* P) {
     double init_ringSize = 5;
     double temp_ringSize = 200;
 
-    std::unordered_map<int, std::vector<int>> s_ring = ring(&P->graph, P->start, P->target_distance/3 - init_ringSize, P->target_distance/3 + init_ringSize);
+    std::list<std::pair<int, std::list<int>>> s_ring = ring(&P->graph, P->start, P->target_distance/3 - init_ringSize, P->target_distance/3 + init_ringSize);
 
-    std::vector<int> bestPath;
+    std::list<int> bestPath;
     double bestQuality = -1;
 
     printf("size of ring: %ld\n", s_ring.size());
@@ -139,24 +146,37 @@ SolveStatus Jogger::solve(Problem* P) {
     for ( auto &pair : s_ring ) {
         index++;
         int point_a = pair.first;
-        std::vector<int> path_s_a = pair.second;
+        std::list<int> path_s_a = pair.second;
 
-        std::unordered_map<int, std::vector<int>> tem_ring = ring(&P->graph, point_a, P->target_distance/3 - temp_ringSize, P->target_distance/3 + temp_ringSize);
+        std::list<std::pair<int, std::list<int>>> tem_ring = ring(&P->graph, point_a, P->target_distance/3 - temp_ringSize, P->target_distance/3 + temp_ringSize);
 
         for ( auto &t_pair : tem_ring ) {
             int point_b = t_pair.first;
-            
-            if (s_ring.find(point_b) != s_ring.end()) {
-                std::vector<int> f_path;
-                f_path.insert(f_path.end(), path_s_a.begin(), path_s_a.end());
-                f_path.insert(f_path.end(), t_pair.second.begin() + 1, t_pair.second.end() - 1);
 
-                std::vector<int> path_b_s = s_ring[point_b];
-                for (int i = path_b_s.size() - 1; i >= 0; i--) {
-                    f_path.push_back(path_b_s[i]);
+            bool contained = false;
+            std::list<int> path_s_b;
+
+            for (auto pair : s_ring) {
+                if (pair.first == point_b) {
+                    contained = true;
+                    path_s_b = pair.second;
+                    break;
+                }
+            }
+            
+            if (contained) {
+                std::list<int> f_path;
+                f_path.insert(f_path.end(), path_s_a.begin(), path_s_a.end());
+
+                for (int v : t_pair.second) {
+                    f_path.push_back(v);
                 }
 
+                for (auto it = path_s_b.rbegin(); it != path_s_b.rend(); ++it)
+                        f_path.push_back(*it);
+
                 double quality = P->getProfit(f_path);
+
                 if (quality > bestQuality) {
                     bestQuality = quality;
                     bestPath = f_path;

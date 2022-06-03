@@ -30,7 +30,7 @@ public:
 
     Node getStart() { return graph.v_nodes[start]; };
 
-    std::vector<int> path;
+    std::list<int> path;
     double quality = -1;
 
     double target_distance;
@@ -44,9 +44,9 @@ public:
     int getNumberOfNodes() { return graph.getNumberOfNodes(); };
     int getNumberOfEdges() { return graph.getNumberOfEdges(); };
     void calculateProfit(Graph* G) ;
-    double getProfit(std::vector<int> path);
-    double getArea(std::vector<int> path);
-    double getLength(std::vector<int> path);
+    double getProfit(std::list<int> path);
+    double getArea(std::list<int> path);
+    double getLength(std::list<int> path);
 
     std::vector<std::string> metadata;
 };
