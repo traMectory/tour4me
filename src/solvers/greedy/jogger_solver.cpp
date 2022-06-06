@@ -173,7 +173,7 @@ SolveStatus Jogger::solve(Problem* P) {
         return SolveStatus::Unsolved;
     
     for (int i: bestPath)
-        P->path.push_back(P->graph.v_nodes[i]);
+        P->path.push_back(i);
 
     return SolveStatus::Feasible;
 

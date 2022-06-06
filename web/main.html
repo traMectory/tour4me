@@ -56,8 +56,15 @@
 
     </div>
 
-    <button class="btn btn-success" style="position:fixed; z-index: 1; top: 20px; right:20px;"
-        onclick="toGPX()">Download to GPX</button>
+
+    <div class="btn-grp" style="position:fixed; z-index: 1; top: 20px; right:20px;">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#infoModal">Show Route
+            Information</button>
+        <button class="btn btn-success" onclick="toGPX()">Download to GPX</button>
+    </div>
+
+
+
 
 
     <div
@@ -76,14 +83,100 @@
         <div class="btn-group" id="algoRadio">
             <!-- <input type="radio" class="btn-check" name="algorithm" id="jogger" autocomplete="off" checked />
                 <label class="btn btn-primary" for="jogger">Jogger</label> -->
-
-
         </div>
 
-        <div class="btn-group mr-2 tags" id="tagButtons" style="position:absolute; right:20px">
-        </div>
+        <button type="button" class="btn btn-warning" data-bs-toggle="modal" style="position:absolute; right:20px" ;
+            data-bs-target="#settingsModal">
+            Open settings
+        </button>
 
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="false">
+        <div class="modal-dialog modal-lg ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="settingsModalLabel">Settings</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h5>Underlying map:</h5>
+                    <div class="btn-group" style="display: block; ">
+                        <input type="radio" class="btn-check" name="mapType" id="cycle_osm" autocomplete="off" checked />
+                        <label class="btn btn-outline-success" for="cycle_osm">Backbone</label>
+                        <input type="radio" class="btn-check" name="mapType" id="osm" autocomplete="off" />
+                        <label class="btn btn-outline-success" for="osm">OSM</label>
+                    </div>
+                    <br>
+                    <h5>Type of roads:</h5>
+                    <div class="btn-group tagsHighway pre-scrollable"
+                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsHighway"></div>
+                    <br>
+                    <h5>Type of surfaces:</h5>
+                    <div class="btn-group mr-2 tagsSurface pre-scrollable"
+                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsSurface"></div>
+                    <br>
+                    <h5>Running time:</h5>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="2" aria-label="Running Time" id="runningTime">
+                        <span class="input-group-text">seconds</span>
+                    </div>
+                    <br>
+                    <h5>Quality Distribution:</h5>
+                    <div class="row">
+                        <div class="col col-md-2">
+                            <label class="form-label">Edge Profit</label>
+                        </div>
+                        <div class="col col-md-9">
+                            <input type="range" class="form-range" oninput="changeRanges(this, 'coveredArea')"
+                                onchange="changeRanges(this, 'coveredArea')" min="0" max="100" id="edgeProfit">
+                        </div>
+                        <div class="col col-md-1">
+                            <label class="form-label" style="float: right;" id="edgeProfitLabel">100%</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-md-2">
+                            <label class="form-label">Covered Area</label>
+                        </div>
+                        <div class="col col-md-9">
+                            <input type="range" class="form-range" oninput="changeRanges(this, 'edgeProfit')"
+                                onchange="changeRanges(this, 'edgeProfit')" min="0" max="100" id="coveredArea">
+                        </div>
+                        <div class="col col-md-1">
+                            <label class="form-label" style="float: right;" id="coveredAreaLabel">100%</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="false">
+        <div class="modal-dialog modal-lg ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="infoModalLabel">Route Information</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- <h5></h5> -->
+                    <div id="metadata-body">
+                        <p>No route exists yet!</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
@@ -98,18 +191,20 @@
         var outer_box;
         var inner_box;
 
+        var metadata = [];
+
         var tags;
         var algos;
 
         const abs_min_lat = 50;
         const abs_max_lat = 52;
-        const lat_gran = 0.5/2
-        const lat_pad = 0.5/4
+        const lat_gran = 0.5 / 2
+        const lat_pad = 0.5 / 4
 
         const abs_min_lon = 5.5;
         const abs_max_lon = 9.25;
-        const lon_gran = 0.75/2
-        const lon_pad = 0.75/4
+        const lon_gran = 0.75 / 2
+        const lon_pad = 0.75 / 4
 
 
         var onClick = function (e) {
@@ -117,6 +212,7 @@
         };
 
         $(document).ready(function () {
+
             var center_lat, center_lon;
             var max_lat, min_lat, max_lon, min_lon;
 
@@ -134,7 +230,7 @@
                     map = L.map('map').setView([center_lat, center_lon], 14);
 
                     var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-                        maxZoom: 18,
+                        maxZoom: 25,
                         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
                             'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
                         id: 'mapbox/streets-v11',
@@ -161,9 +257,17 @@
 
                     map.on('click', onClick);
 
-                    tagButtons = document.getElementById("tagButtons");
+                    tagButtonsHighway = document.getElementById("tagButtonsHighway");
+                    tagButtonsSurface = document.getElementById("tagButtonsSurface");
+
                     tags.forEach(tag => {
-                        var name = tag[0].toUpperCase() + tag.slice(1);
+                        var name = tag[0][0].toUpperCase() + tag[0].slice(1);
+
+                        tagButtons = tagButtonsHighway;
+                        if (tag[1] == 1) {
+                            tagButtons = tagButtonsSurface;
+                        }
+
                         if (name == "Path" || name == "Track") {
                             tagButtons.innerHTML += "<label class=\"btn btn-cycle btn-success desire\" id=\"" + tag + "\">" + name + "</label>"
                         } else {
@@ -203,7 +307,7 @@
                             $(this).addClass("avoid");
                             $(this).addClass("btn-danger");
                         } else if ($(this).hasClass("avoid")) {
-                            $(this).removeClass("desire");
+                            $(this).removeClass("desire"); edgeProfit
                             $(this).removeClass("btn-danger");
 
                             $(this).addClass("neutral");
@@ -211,6 +315,7 @@
                         }
                     });
 
+                    changeRanges(document.getElementById("edgeProfit"), "coveredArea")
                     // getBackbone();
 
                 },
@@ -221,6 +326,18 @@
 
 
         });
+
+        function changeRanges(current, target) {
+            label = document.getElementById(current.id + "Label")
+            label.innerHTML = (current.value) + "%"
+
+
+            document.getElementById(target).value = 100 - current.value;
+            // $("#" + target).slider('refresh');
+
+            targetLabel = document.getElementById(target + "Label")
+            targetLabel.innerHTML = (100 - current.value) + "%"
+        }
 
 
         function getBackbone() {
@@ -302,11 +419,10 @@
                 return false;
             }
 
-            tag_str = ""
+            tag_str = "&tags="
 
             tags.forEach(tag => {
                 tag_button = document.getElementById(tag);
-                tag_str += "&" + tag + "=";
                 if (tag_button.classList.contains("neutral")) {
                     tag_str += "n";
                 } else if (tag_button.classList.contains("desire")) {
@@ -318,15 +434,21 @@
 
             var algorithm = document.querySelector('input[name="algorithm"]:checked').value;
 
-            console.log(algorithm)
             if (algorithm == 2) {
                 getBackbone()
             }
 
+            var runningTime = document.getElementById("runningTime").value;
+
+            var edgeProfit = document.getElementById("edgeProfit").value / 100;
+            var coveredArea = document.getElementById("coveredArea").value / 100;
+
             document.getElementById("overlay").style.display = "block";
 
+
+
             $.ajax({
-                url: "tour?dis=" + dis + "&lat=" + lat + "&lon=" + lon + "&algo=" + algorithm + tag_str,
+                url: "tour?dis=" + dis + "&lat=" + lat + "&lon=" + lon + "&algo=" + algorithm + tag_str + "&rt=" + runningTime + "&ep=" + edgeProfit + "&ca=" + coveredArea,
                 contentType: "application/json",
                 dataType: 'json',
                 success: function (result) {
@@ -339,6 +461,18 @@
 
                     document.getElementById("overlay").style.display = "none";
                     map.fitBounds(line.getBounds());
+
+                    metadata = result["meta"];
+
+                    m_body = document.getElementById("metadata-body");
+
+                    m_body.innerHTML = ""
+                    metadata.forEach(element => {
+                        m_body.innerHTML += "<p>" + element + "</p>\n";
+                    });
+
+
+
                 },
                 error: function (xhr, status) {
                     document.getElementById("overlay").style.display = "none";
@@ -371,6 +505,10 @@
         }
 
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
 
 
 </body>

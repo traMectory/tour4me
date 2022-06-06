@@ -10,7 +10,7 @@ double ILS::getDistanceFromLatLon(int n1, int n2)
     Node node1 = P->graph.v_nodes[n1];
     Node node2 = P->graph.v_nodes[n2];
 
-    double R = 6371e3;                  // Radius of the earth in km
+    double R = 6371e3;                            // Radius of the earth in km
     double dLat = deg2rad(node2.lat - node1.lat); // deg2rad below
     double dLon = deg2rad(node2.lon - node1.lon);
     double a =
@@ -93,17 +93,27 @@ double ILS::shortestPath(int start, int end)
 
 bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
 {
-    int start = solution->sol[solution->cut_loc];
-    int end = solution->sol[solution->cut_loc + 1];
+    assert(solution->sol.size() >= 2);
 
-    if (maxDepth < 0 || shortestPath(start, end) > dist)
+    if (maxDepth < 0 || dist < 0)
     {
         return false;
     }
 
-    // auto neighbours = P->graph.getEdges(start);
+    int start = solution->sol[solution->cut_loc];
+    int end = solution->sol[solution->cut_loc + 1];
 
-    // std::random_shuffle(neighbours.begin(), neighbours.end());
+    if (shortestPath(start, end) >= dist)
+    {
+        return false;
+    }
+
+    std::vector<int> copy_path(solution->sol.size());
+
+    for (int i = 0; i < solution->sol.size(); i++)
+    {
+        copy_path[i] = solution->sol[i];
+    }
 
     std::vector<std::pair<int, int>> neighbours;
 
@@ -112,7 +122,7 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
         neighbours.push_back(pair);
     }
 
-    std::random_shuffle(neighbours.begin(), neighbours.end());
+    // std::random_shuffle(neighbours.begin(), neighbours.end());
 
     for (auto &pair : neighbours)
     {
@@ -127,24 +137,34 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
 
         Edge *e = P->graph.v_edges[pair.second];
 
-        if (!solution->visitedEdges.contains(e))
-            solution->visitedEdges[e] = 0;
-
         auto itPos = solution->sol.begin() + solution->cut_loc + 1;
 
         solution->sol.insert(itPos, neigh);
         solution->length += e->cost;
 
+        if (!solution->visitedEdges.contains(e))
+        {
+            solution->visitedEdges[e] = 0;
+        }
+
         if (solution->visitedEdges[e] == 0)
         {
             solution->profit += e->profit;
         }
+
         solution->visitedEdges[e]++;
         solution->cut_loc++;
 
-        if (neigh == end && solution->length >= C_min && solution->profit > minProfit && solution->profit - minProfit > 0.000001)
+
+        if (neigh == end && solution->length >= C_min && solution->length <= C_max && solution->profit > minProfit && solution->profit - minProfit > 0.000001)
         {
             solution->sol.erase(solution->sol.begin() + solution->cut_loc + 1);
+
+            for (int i = 0; i < solution->sol.size() - 1; i++)
+            {
+                assert(P->graph.getEdge(solution->sol[i], solution->sol[i + 1]) != nullptr);
+            }
+
             return true;
         }
 
@@ -162,6 +182,17 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
         }
         solution->cut_loc--;
         solution->sol.erase(solution->sol.begin() + solution->cut_loc + 1);
+
+        for (auto pair : solution->visitedEdges)
+        {
+            assert(pair.second >= 0);
+        }
+    }
+
+    assert(solution->sol.size() >= 2);
+    for (int i = 0; i < solution->sol.size(); i++)
+    {
+        assert(copy_path[i] == solution->sol[i]);
     }
 
     return false;
@@ -176,25 +207,26 @@ TempSol ILS::initialisation(int maxDepth, int startLocation)
 
     if (insert(&solution, C_max, 0, maxDepth))
     {
+        assert(solution.sol.size() <= maxDepth + 2);
 
         for (int i = 0; i < solution.sol.size() - 1; i++)
         {
+            assert(solution.sol[solution.sol.size() - 1] == startLocation);
 
             Edge *e = P->graph.getEdge(solution.sol[i], solution.sol[i + 1]);
 
-            if (!solution.visitedEdges.contains(e))
-                solution.visitedEdges[e] = 0;
+            solution.visitedEdges[e]--;
 
-            if (solution.visitedEdges[e] == 1)
+            if (solution.visitedEdges[e] == 0)
             {
                 solution.profit -= e->profit;
             }
             solution.length -= e->cost;
-            solution.visitedEdges[e]--;
 
             solution.cut_loc = i;
 
-            if (!insert(&solution, C_max - solution.length, solution.profit, maxDepth)) {
+            if (!insert(&solution, C_max - solution.length, solution.profit, maxDepth))
+            {
                 if (solution.visitedEdges[e] == 0)
                 {
                     solution.profit += e->profit;
@@ -228,12 +260,22 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
         }
 
         solution->cut_loc = A;
-        
-        double minProfit = solution->profit;
-        
-        if (A + R > size - 1) {
 
-            for (int i = A; i < size-1; i++) {
+        double minProfit = solution->profit;
+
+        std::vector<int> copy_path(solution->sol.size());
+
+        for (int i = 0; i < solution->sol.size(); i++)
+        {
+            copy_path[i] = solution->sol[i];
+        }
+
+        if (A + R > size - 1)
+        {
+
+            int ar = solution->sol[size - 1];
+            for (int i = A; i < size - 1; i++)
+            {
                 removed.push_back(solution->sol[i]);
                 Edge *e = P->graph.getEdge(solution->sol[i], solution->sol[i + 1]);
 
@@ -247,10 +289,15 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
             }
 
             solution->sol.erase(solution->sol.begin() + A + 1, solution->sol.end() - 1);
+            assert(solution->sol[A + 1] == ar);
 
             A = 1;
-        } else {
-            for (int i = A; i < A + R; i++) {
+        }
+        else
+        {
+            int ar = solution->sol[A + R];
+            for (int i = A; i < A + R; i++)
+            {
                 removed.push_back(solution->sol[i]);
                 Edge *e = P->graph.getEdge(solution->sol[i], solution->sol[i + 1]);
 
@@ -265,21 +312,21 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
             solution->sol.erase(solution->sol.begin() + A + 1, solution->sol.begin() + A + R);
 
-            
+            assert(solution->sol[A + 1] == ar);
         }
 
         if (insert(solution, C_max - solution->length, minProfit, maxDepth))
         {
-            printf("  improved! %f\n", solution->profit);
+            printf("  improved! profit: %f, length: %f\n", solution->profit, solution->length);
             noImprove = 0;
-            A = 1;
+            A = 0;
             R = 1;
         }
         else
         {
-            for (int i = 1; i < removed.size(); i++) {
-                Edge *e = P->graph.getEdge(removed[i-1], removed[i]);
-
+            for (int i = 1; i < removed.size(); i++)
+            {
+                Edge *e = P->graph.getEdge(removed[i - 1], removed[i]);
 
                 if (solution->visitedEdges[e] == 0)
                 {
@@ -303,6 +350,16 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
             noImprove++;
             A++;
             R++;
+
+            if (R > maxDepth * 2)
+                R = 1;
+            
+            
+
+            for (int i = 0; i < solution->sol.size(); i++)
+            {
+                assert(copy_path[i] == solution->sol[i]);
+            }
         }
     }
 }
@@ -314,19 +371,55 @@ SolveStatus ILS::solve(Problem *problem)
     C_max = P->target_distance;
     C_min = 0;
 
-    int maxNoImprove = 20;
-    int maxDepth = 10;
+    int maxNoImprove = 100;
+    int maxDepth = 5;
 
-    TempSol solution = initialisation(maxDepth, P->start);
+    Jogger jogSolver;
+
+    SolveStatus status = jogSolver.solve(P);
+    if (status == SolveStatus::Unsolved)
+        return status;
+    
+    printf("Calculated Greedy solution\n");
+
+    TempSol solution;
+
+    solution.sol.resize(P->path.size());
+    solution.length = 0;
+    solution.profit = 0;
+
+    for (int i = 0; i < solution.sol.size(); i++) {
+        solution.sol[i] = P->path[i];
+
+        if (i > 0) {
+            Edge *e = P->graph.getEdge(solution.sol[i - 1], solution.sol[i]);
+
+
+            if (!solution.visitedEdges.contains(e))
+            {
+                solution.visitedEdges[e] = 0;
+            }
+
+            if (solution.visitedEdges[e] == 0)
+            {
+                solution.profit += e->profit;
+            }
+            solution.length += e->cost;
+            solution.visitedEdges[e]++;
+        }
+    }
+
     printf("Before; profit: %f, length: %f\n", solution.profit, solution.length);
 
     improve(&solution, maxNoImprove, maxDepth);
 
     printf("After; Profit: %f, length: %f\n", solution.profit, solution.length);
 
+    P->path.clear();
+
     for (int v_sol : solution.sol)
     {
-        P->path.push_back(P->graph.v_nodes[v_sol]);
+        P->path.push_back(v_sol);
     }
 
     if (C_min <= solution.length && solution.length <= C_max)
