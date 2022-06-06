@@ -102,7 +102,7 @@
 %% Declare bibliography sources (one \addbibresource command per source)
 \addbibresource{software.bib}
 \addbibresource{sample-base.bib}
-
+\usepackage{xspace}
 
 %%
 %% end of the preamble, start of the body of the document source.
@@ -154,17 +154,15 @@
 %% the author to define a more concise list
 %% of authors' names for this purpose.
 \renewcommand{\shortauthors}{Buchin, Hagedoorn, and Li}
-\newcommand{\tG}{\textsc{tourGenerator}}
+\newcommand{\tG}{\textsc{Tour4Me}\xspace}
 
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-The touring problem is a generalization of the arc orienteering problem;  
-in addition to maximizing edge profit, the touring problem optimizes attributes not depending only on single edges, for example maximizing the area covered by an tour.
-In this demonstration paper we provide a framework that allows for straightforward integration of new algorithms for the touring problem. 
-We have included a new exact solver, a heuristic, and two greedy methods.
-Furthermore, a GUI is provided in the form of a webpage, allowing for testing of algorithms even by end users.
+The touring problem aims to find an `interesting' (round) trip of a given length. Here, what is considered interesting depends on the type of the desired route, e.g., a user may be looking for a off-road cycling trip or fast running route.
+There are two main perspectives on the touring problem, maximizing profit or minimizing cost, which result in very different algorithmic solutions. We provide a framework that allows for straightforward integration of new algorithms for both perspectives on the touring problem.
+In this demonstration we have included a new exact solver, a heuristic, and two greedy methods. The user can experiment with the algorithms and different profits/costs. The generated tours can be explored in an easy-to-use web interface.
 \end{abstract}
 
 %%
@@ -214,32 +212,51 @@ Furthermore, a GUI is provided in the form of a webpage, allowing for testing of
 \section{Introduction}
 
 % Problem description and motivation
-Most people who do outdoor activities run into the problem of finding an appropiate route. 
-Depending on the activity from hiking and jogging to gravel and road cycling, requirements from users can greatly vary.
-To this end we have developed \tG. 
-The tool \tG constists out of an intuitive UI that allows users to create tours customed to their specific demands in their own webbrowser. Furthermore, \tG contains a few algorithms for computing solutions for the arc orienteering problem (AOP) and the more general touring problem.
+Most people who do outdoor activities run into the problem of finding an appropriate route. 
+Depending on the activity from hiking and jogging to gravel and road cycling, requirements from individual users can greatly vary.
+To this end we developed the framework \tG for computing customized round trip. 
+The tool \tG includes four touring algorithms and provides an intuitive web interface to create tours customed to users specific demands and preferences. 
+In this work, we introduce the touring problem, which is defined formally as follows. 
+Let $G$ be a directed graph consisting a vertex set $V$ and a set $E$ of arcs. A cost function $w:E \rightarrow \mathbb{N}$ and a profit function $\pi: E \rightarrow \mathbb{N}$ assign different cost and profit to each arc of $G$.
+We generalize the terms cost and profit to paths. Given a path $P = (e_1, \dots, e_{\ell})$ of $G$, we denote the cost of $P$ as $w(P)$, which is defined as $\sum_{i=1}^{\ell} w(e_i)$;we write $\pi(P) = \sum_{ e \in {\{e_1, \ldots e_l\}} } \pi(e)$ for the profit of $P$.  
+Given a cost budget $B$ and a starting vertex $s$, the objective of touring problem is to find a cycle $P=(e_1, \dots, e_{\ell})$ starting and ending at the vertex $s$ that maximizes the profit sum within the cost budget $B$. 
+Note that in the touring problem it is allowed to visit an edge multiple times, but its profit is only counted once. 
+\subparagraph*{\textbf{Related Work.}}
+In the orienteering problem (OP), given an (un)-directed graph, the goal is to find a path which maximizes the total collected profit while not violating the budget constraint. In the classic model, a cost is assigned to each edge/arcs and a profit is assigned to each vertex. The profit of a path is defined by the sum of collected profit of its visited vertices. 
+The orienteering problem is well-studied since decades and finds applications in the fields . 
+Motivated by cycling routing problem, the variant arc orienteering problem (AOP) was introduced and has been studied in. In this variant, the profit is assigned to each edge and the profit of a path is defined by the sum of collected profits of each visited edge.
+The touring problem is a variant of the  arc orienteering problem where the goal is to find a cycle with a fixed starting point. 
 
-\subsection{Related Work}
-\subsection{Contribution}
 
+\subparagraph*{\textbf{Contribution.}}
+Our contribution is twofold. We designed a prototype tool \tG for generating customized round trip. Here the user can give their priorities and preferences of road types and then the selected algorithm will compute a round trip with customized weights and profits; see Section~\ref{sec:system}. In this framework, we implemented four algorithms for touring problems; see Section~\ref{sec:algo}.
+We selected one simple greedy approach, two representative sophisticated heuristics for AOP problem and one exact solver based on our introduced (ILP) model for the touring problem.
 \section{System}
+\label{sec:system}
+\subparagraph*{\textbf{Architecture.}}
+Our framework is a one-page web application. For the implementation of efficient algorithms in back-end, we use C++. To display the computed routs in the map, our web interface uses the JavaScript library \href{https://leafletjs.com/}{\emph{Leaflet}}\footnote{\url{https://leafletjs.com/}} 
+(version x.x.x). say something about the requirements sending....
+\subparagraph*{\textbf{Data.}}
 
-\subsection{Architecture}
-
-\subsection{Data}
-
-\subsection{Interface}
-
+\subparagraph*{\textbf{Interface.}}
+The user interface. shown in Fig., consists of a large background map. The starting point can selected by clicking on a spot directly in the map. 
+say something about the toolbox and the workflow... 
+%\begin{figure}[htb]
+%\centering
+%\includegraphics[width=\textwidth]{figs/guis}
+%$\caption{The graphical user interface of the developed prototype.}
+%\label{fig:GUI}		
+%\end{figure}
 \section{Algorithm}
+\label{sec:algo}
+\subparagraph*{\textbf{Greedy Selection.}}
 
-\subsection{Greedy Selection}
 
-\subsection{Jogging Tour}
+\subparagraph*{\textbf{Jogging Tour.}}
 
-\subsection{Iterative Local Search}
+\subparagraph*{\textbf{Iterative Local Search.}}
 
-\subsection{Integer Linear Programming}
-
+\subparagraph*{\textbf{Integer Linear Programming.}}
 The integer linear program (ILP) gives the optimal solution for an instance of the AOP. The ILP used in \tG is a modified version from Verbeeck et al. 
 The ILP from [] introduces a constraint for every subset of the vertices in order to avoind disconnected components, resulting in $\mathcal{O}(2^n)$ constrains.
 
