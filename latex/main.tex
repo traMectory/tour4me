@@ -107,6 +107,7 @@
 \newcommand{\jogging}{\textsc{Jogging Tour}\xspace}
 \newcommand{\ils}{\textsc{Iterative Local Search}\xspace}
 \newcommand{\ilp}{\textsc{Integer Linear Programming}\xspace}
+\newcommand{\AOP}{\textsc{AOP}\xspace}
 %%
 %% end of the preamble, start of the body of the document source.
 \begin{document}
@@ -236,13 +237,13 @@ Note that in the touring problem it is allowed to visit an edge multiple times, 
 \subparagraph*{\textbf{Related Work.}}
 In the orienteering problem (OP), given an (un)-directed graph, the goal is to find a path which maximizes the total collected profit while not violating the budget constraint. In the classic model, a cost is assigned to each edge/arcs and a profit is assigned to each vertex. The profit of a path is defined by the sum of collected profit of its visited vertices. 
 The orienteering problem is well-studied since decades and finds applications in the fields . 
-Motivated by cycling routing problem, the variant arc orienteering problem (AOP) was introduced and has been studied in. In this variant, the profit is assigned to each edge and the profit of a path is defined by the sum of collected profits of each visited edge.
+Motivated by cycling routing problem, the variant arc orienteering problem (\AOP) was introduced and has been studied in. In this variant, the profit is assigned to each edge and the profit of a path is defined by the sum of collected profits of each visited edge.
 The touring problem is a variant of the  arc orienteering problem where the goal is to find a cycle with a fixed starting point. 
 
 
 \subparagraph*{\textbf{Contribution.}}
 Our contribution is twofold. We designed a prototype tool \tG for generating customized round trip. Here the user can give their priorities and preferences of road types and then the selected algorithm will compute a round trip with customized weights and profits; see Section~\ref{sec:system}. In this framework, we implemented four algorithms for touring problems; see Section~\ref{sec:algo}.
-We selected one simple greedy approach, two representative sophisticated heuristics for AOP problem and one exact solver based on our introduced (ILP) model for the touring problem.
+We selected one simple greedy approach, two representative sophisticated heuristics for \AOP problem and one exact solver based on our introduced (ILP) model for the touring problem.
 \section{System}
 \label{sec:system}
 \subparagraph*{\textbf{Architecture.}}
@@ -276,11 +277,22 @@ If the process terminates at a vertex $v$ other than $s$, we add the shorted pat
         
 
 \subparagraph*{\textbf{Jogging Tour.}}
+We further selected one representative existing approach \jogging~\cite{DBLP:conf/wea/GemsaPWZ13} for the \AOP problem.  (something goes wrong with the bibtex)
+In contract to \greedy approach, this approach takes the edge costs into account and  tries to select the ``efficient'' edges, that are edges of high profit and low cost. 
+For this, we introduce the metric \textsc{Inefficiency} \xspace on the edges $\gamma: E-> R_{+}$. For each edge $e \in E$, we set $\gamma(e) = \frac{w(e)}{\pi(e) + 0.1}$.
+Intuitively, this approach aims to obtain an equilateral triangles consisting of three efficient paths and having $s$ as one of the triangle's edge. Firstly, we run a shortest path computation (with Dijkstra’s algorithm) from $s$
+using this metric inefficiency.
+For each vertex $u,v$, we refer to $P_{u,v}$ as the shortest path of the metric inefficiency in the following.   
+We now determine the vertices whose shortest path from $s$ has cost in the range $[\frac{B}{3}- \frac{B}{10} , \frac{B}{3} + \frac{B}{10}]$. We refer to the set of such candidate vertices as the \textit{ring} of $s$ $R_s$.
+Next, for each candidate vertex $v$ of $s$, we run a shortest path computation from $v$ and compute the ring $R_v$. Now, we consider the intersection $I_{s,v}$ of two ring sets $R_s$ and $R_v$. Note that the distances from each vertex $u\in I_{s,v}$ to $s$ and $u$ are in the range $[\frac{B}{3}- \frac{B}{10} , \frac{B}{3} + \frac{B}{10}]$. Then, we check whether the concatenation of the paths $P_{s,v}, P_{v,u}$ and $P_{v,u}$ is a valid solution, i.e., the cost of the computed cycling is bounded by the cost budget $B$. 
+We repeat this step for each vertex in the ring $R_s$ and collect a set of candidate cycles. 
+Finally, we pick the candidate solution with the highest profit as the final solution.
+       
 
 \subparagraph*{\textbf{Iterative Local Search.}}
 
 \subparagraph*{\textbf{Integer Linear Programming.}}
-The integer linear program (ILP) gives the optimal solution for an instance of the AOP. The ILP used in \tG is a modified version from Verbeeck et al. 
+The integer linear program (ILP) gives the optimal solution for an instance of the \AOP. The ILP used in \tG is a modified version from Verbeeck et al. 
 The ILP from [] introduces a constraint for every subset of the vertices in order to avoind disconnected components, resulting in $\mathcal{O}(2^n)$ constrains.
 
 \begin{equation}
