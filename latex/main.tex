@@ -99,6 +99,8 @@
   style=acmauthoryear,
   ]{biblatex}
 
+\usepackage{xspace}
+
 %% Declare bibliography sources (one \addbibresource command per source)
 \addbibresource{software.bib}
 \addbibresource{sample-base.bib}
@@ -154,18 +156,15 @@
 %% the author to define a more concise list
 %% of authors' names for this purpose.
 \renewcommand{\shortauthors}{Buchin, Hagedoorn, and Li}
-\newcommand{\tG}{\textsc{tourGenerator}}
+\newcommand{\tM}{\textsc{Tour4Me}\xspace}
 
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-In this demonstration paper we provide a framework that allows for straightforward integration of new algorithms for the touring problem. 
-The touring problem aims to find an `interesting' tour of a given length, an user decides what is considered interesting.
-There are two main approaches for the touring problem: maximizing attributes or minimizing cost.
-We provide a framework that allows for straightforward integration of new algorithms for both approaches on the touring problem. 
-In this demonstration we have included a new exact solver, a heuristic, and two greedy methods.
-Furthermore, a GUI is provided in the form of a webpage, allowing for testing of algorithms, even by end users.
+The touring problem aims to find an `interesting' (round) trip of a given length. Here, what is considered interesting depends on the type of the desired route, e.g., a user may be looking for a off-road cycling trip or fast running route.
+There are two main perspectives on the touring problem, maximizing profit or minimizing cost, which result in very different algorithmic solutions. We provide a framework that allows for straightforward integration of new algorithms for both perspectives on the touring problem.
+In this demonstration we have included a new exact solver, a heuristic, and two greedy methods. The user can experiment with the algorithms and different profits/costs. The generated tours can be explored in an easy-to-use web interface.
 \end{abstract}
 
 %%
@@ -217,31 +216,56 @@ Furthermore, a GUI is provided in the form of a webpage, allowing for testing of
 % Problem description and motivation
 Most people who do outdoor activities run into the problem of finding an appropiate route. 
 Depending on the activity from hiking and jogging to gravel and road cycling, requirements from users can greatly vary.
-To this end we have developed \tG. 
-The tool \tG constists out of an intuitive UI that allows users to create tours customed to their specific demands in their own webbrowser. Furthermore, \tG contains a few algorithms for computing solutions for the arc orienteering problem (AOP) and the more general touring problem.
+To this end we have developed \tM. 
+The tool \tM constists out of an intuitive UI that allows users to create tours customed to their specific demands in their own webbrowser. Furthermore, \tM contains a few algorithms for computing solutions for the arc orienteering problem (AOP) and the more general touring problem.
+
+For the touring problem there exist two distinct perspectives. The first is the perspective of maximizing profit as with the arc orienteering problem (AOP). 
+Given a length budget and an profit function over every edge, find a route that does not exceed the budget and maximizes the total profit. 
+An important detail to this approach is that the profit of an edge is only counted once, whilst the cost of an edge is added every time.
+In an effort of finding better and nicer tours more attributes could be maximized. 
+For example, we can maximize the total area covered by the tour, to get a tour that is closed to a circle as possible, or minimize turn cost as this requires slowing down.
+
+The second perspective is perhaps more intuitive and involves minimizing cost. 
+Here edges that are desirable are reduced in cost resulting in a new graph representing the underlying streets. 
+A shortest path algorithm can be used to find a route between two points which will result in a route where desired edges are prioirtized by the algorithm as they are less costly to traverse.
+In order to create a cyclic tour with the minimizing cost approach, intermediate waypoints need to be choosen. Between these waypoints a shortest path calculation is performed resulting in the 
+ 
 
 \subsection{Related Work}
 \subsection{Contribution}
 
 \section{System}
+The main contribution of this work is the framework that allows for easy 
 
 \subsection{Architecture}
 
 \subsection{Data}
+To represent streets and roads as a graph we use the data from OpenStreetMap\footnote{https://www.openstreetmap.org}. The street data is thereafter processed by OSMnx \cite{}. The 
 
+\subsubsection{Backbone}
+In order to get exact solutions for routes of length larger than 2 kilometers we can choose to run these exact algorithms on a simplified graph.
+We include roads in our backbone if they are part of a registered bike route in OSM. Registered bike routes are usually routes maintained by local and regional governments.
+Therefore, for cycling, these usually give a reasonable network of roads and cycle ways that are fit to cycle on.
 \subsection{Interface}
 
 \section{Algorithm}
 
-\subsection{Greedy Selection}
+For this iteration we have implemented four dirrent algorithms for calulation and improvement of routes.
 
-\subsection{Jogging Tour}
+\subsection{Greedy Selection}
+The greedy selection algorithm uses a straightforward greedy choice for selecting 
+
+\subsection{Jogging Tour}\label{alg:jogging}
 
 \subsection{Iterative Local Search}
+We have implemented the iterative local search from Verbeeck et al. [?]. 
+We however do not use the initialization phase of their algoirthm as this does not produce suffiently good results for us. 
+Therefore, we run the Jogging tour alogirthm from Section \ref{alg:jogging} to obtain an intial solution. 
+This solution is thereafter improved by the iterative local search using the time budget given by the user.
 
 \subsection{Integer Linear Programming}
 
-The integer linear program (ILP) gives the optimal solution for an instance of the AOP. The ILP used in \tG is a modified version from Verbeeck et al. 
+The integer linear program (ILP) gives the optimal solution for an instance of the AOP. The ILP used in \tM is a modified version from Verbeeck et al. 
 The ILP from [] introduces a constraint for every subset of the vertices in order to avoind disconnected components, resulting in $\mathcal{O}(2^n)$ constrains.
 
 \begin{equation}
