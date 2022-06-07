@@ -103,7 +103,10 @@
 \addbibresource{software.bib}
 \addbibresource{sample-base.bib}
 \usepackage{xspace}
-
+\newcommand{\greedy}{\textsc{Greedy Selection}\xspace}
+\newcommand{\jogging}{\textsc{Jogging Tour}\xspace}
+\newcommand{\ils}{\textsc{Iterative Local Search}\xspace}
+\newcommand{\ilp}{\textsc{Integer Linear Programming}\xspace}
 %%
 %% end of the preamble, start of the body of the document source.
 \begin{document}
@@ -258,8 +261,19 @@ say something about the toolbox and the workflow...
 %\end{figure}
 \section{Algorithm}
 \label{sec:algo}
+We implemented four representative algorithms in our framework. The simplest approach \greedy is a fast greedy approach which selects edges of high profits.
+The second greedy algorithm \jogging aims to obtain a cycle consisting of edges of low costs.  
+The two sophisticated algorithms \ils and \ilp support area maximization. 
+The algorithm \ils starts with the greedy solution computed by \greedy and improve the initial solution by an iteratve local search based metaheuristic, which also gives the name to our algorithm.
+Finally, we introduce the exact solver \ilp for  the touring problem. As the name suggests, we formulate the touring problem as a  linear integer programming problem. 	
+To solve our ILP formulation we use one of the state-of-the-art solver \href{https://www.gurobi.com/}{GUROBI} for mathematical programming. %
+     
 \subparagraph*{\textbf{Greedy Selection.}}
-
+The greedy approach \greedy computes a cycling starting at the vertex $s$ by iteratively picking edges of the highest profit. To make sure the computed path is a valid cycle, we only pick edges, from whose endpoint the vertex $s$ can be reached by the remaining cost budget. We call such edges as valid candidates. 
+It starts by picking an valid edge starting at $s$ of the highest profit. 
+Next, we update the remaining cost budget and repeat this greedy selection from the endpoint of the new selected edge until reaching the starting vertex $s$ or reaching a vertex with no adjacent valid edge. 
+If the process terminates at a vertex $v$ other than $s$, we add the shorted path from $v$ to $s$ to the computed solution. 
+        
 
 \subparagraph*{\textbf{Jogging Tour.}}
 
