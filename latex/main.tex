@@ -280,16 +280,27 @@ If the process terminates at a vertex $v$ other than $s$, we add the shorted pat
 We further selected one representative existing approach \jogging~\cite{DBLP:conf/wea/GemsaPWZ13} for the \AOP problem.  (something goes wrong with the bibtex)
 In contract to \greedy approach, this approach takes the edge costs into account and  tries to select the ``efficient'' edges, that are edges of high profit and low cost. 
 For this, we introduce the metric \textsc{Inefficiency} \xspace on the edges $\gamma: E-> R_{+}$. For each edge $e \in E$, we set $\gamma(e) = \frac{w(e)}{\pi(e) + 0.1}$.
-Intuitively, this approach aims to obtain an equilateral triangles consisting of three efficient paths and having $s$ as one of the triangle's edge. Firstly, we run a shortest path computation (with Dijkstra’s algorithm) from $s$
+Intuitively, this approach aims to obtain an equilateral triangles consisting of three efficient paths, each of which has a cost close to  $\frac{B}{3}$, and having $s$ as one of the triangle's edge. Firstly, we run a shortest path computation (with Dijkstra’s algorithm) from $s$
 using this metric inefficiency.
 For each vertex $u,v$, we refer to $P_{u,v}$ as the shortest path of the metric inefficiency in the following.   
 We now determine the vertices whose shortest path from $s$ has cost in the range $[\frac{B}{3}- \frac{B}{10} , \frac{B}{3} + \frac{B}{10}]$. We refer to the set of such candidate vertices as the \textit{ring} of $s$ $R_s$.
 Next, for each candidate vertex $v$ of $s$, we run a shortest path computation from $v$ and compute the ring $R_v$. Now, we consider the intersection $I_{s,v}$ of two ring sets $R_s$ and $R_v$. Note that the distances from each vertex $u\in I_{s,v}$ to $s$ and $u$ are in the range $[\frac{B}{3}- \frac{B}{10} , \frac{B}{3} + \frac{B}{10}]$. Then, we check whether the concatenation of the paths $P_{s,v}, P_{v,u}$ and $P_{v,u}$ is a valid solution, i.e., the cost of the computed cycling is bounded by the cost budget $B$. 
 We repeat this step for each vertex in the ring $R_s$ and collect a set of candidate cycles. 
 Finally, we pick the candidate solution with the highest profit as the final solution.
+Note that this algorithm may not find any feasible solution.
        
 
 \subparagraph*{\textbf{Iterative Local Search.}}
+The \ils algorithm is modified from the iterative local search approach proposed for \AOP problem, which is proposed in~\cite{} and proved to be efficient for real-life instances. 
+The local search \ils runs the \greedy approach and starts with the the computed solution as the initial solution.
+In order to escape form local minima, in each step of improvement phase, the current solution is modified by removing a different partial path. Then, a local movement is applied to connect the endpoints in the current solution and increase the total profit.
+The partial path for removal is determined by two parameters $p$ and $l$, where $i$ indicates the position of the current solution to start the removal and $l$ is the length of the path to remove. 
+Both parameters are set to $1$ at the start and increased by $1$ in every iteration. The parameter $p$ is reset to $1$ if the removal reaches the starting vertex $s$ and $l$ is reset to $1$ if $l$ reached the length of the whole solution.     
+After removing the path $P$ from a vertex $u$ to a vertex $v$ in the current solution $S$, we aim to find a better path between $u$ and $v$ which provides higher profit and whose cost is bound by the remaining cost budget, i,e, $B- w(S\setminus P)$.    
+The basic idea applied here is a depth first search. To accelerate the local move, we use a parameter $D$ to restrict the depth of the search. The search starts from  the vertex $u$ and explore at most $D$ depth along each branch. Once a path $P'$ reaching the vertex $v$  without violating the budget constraint is found, we check if the total profit of the current solution is increased by replacing $P$ by $P'$. 
+If so, we stop the search and update the current solution. 
+  
+ 
 
 \subparagraph*{\textbf{Integer Linear Programming.}}
 The integer linear program (ILP) gives the optimal solution for an instance of the \AOP. The ILP used in \tG is a modified version from Verbeeck et al. 
