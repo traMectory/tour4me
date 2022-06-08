@@ -108,6 +108,7 @@
 \newcommand{\ils}{\textsc{Iterative Local Search}\xspace}
 \newcommand{\ilp}{\textsc{Integer Linear Programming}\xspace}
 \newcommand{\AOP}{\textsc{AOP}\xspace}
+\newcommand{\III}{\mathcal{I}}
 %%
 %% end of the preamble, start of the body of the document source.
 \begin{document}
@@ -303,26 +304,31 @@ If so, we stop the search and update the current solution.
  
 
 \subparagraph*{\textbf{Integer Linear Programming.}}
-The integer linear program (ILP) gives the optimal solution for an instance of the \AOP. The ILP used in \tG is a modified version from Verbeeck et al. 
-The ILP from [] introduces a constraint for every subset of the vertices in order to avoind disconnected components, resulting in $\mathcal{O}(2^n)$ constrains.
-
-\begin{equation}
-  something Bad
-  \label{exponential_ILP}
-\end{equation}
-
-The ILP from [] uses Equation \ref{exponential_ILP} to avoid subcycles. Instead we introduce a variable $\rho_{kij}$, for $1 \leq k \leq L$ and $1 \leq i, j \leq m$. Variable $\rho_{kij}$ denotes whether edge $e_{ij}$ is included in the path at location $k$.
+Finally, we introduce the exact solver \ilp for  the touring problem. As the name suggests, we formulate the touring problem as an integer linear programming problem. 	
+To solve our ILP formulation we use one of the state-of-the-art solver  \href{https://www.gurobi.com/}{GUROBI} for mathematical programming. 
+We now encode an instance $\III = (G, w, \pi, B, v_0)$ of touring problem, where $v_0$ is the starting vertex, into the ILP formulation as follows.
+We first introduce a canonical type of solutions produced by our solver.
+Note that a valid solution cycle consists of at most $L :=\frac{B}{w_{min}}$ edges, where $B$ is the cost budget and $w_{min}$ is the minimum cost of an edge of $G$.
+Thus, given any cycle $P = (v_0, \ldots, v_i, \ldots v_0)$ of a length bounded by $L$ , we could always extend $P$ to a cycle $P'$ of length exact $L$ by appending extra $v_0$ in the end. 
+Note that, the path $P'$ has the same cost and profit as $P$. 
+We call such cycle  $P'$ of length $L$ and starting from the vertex $v_0$ as the canonical cycle in the following. 
+\subparagraph*{\textbf{Variables.}}
+For each edge $v_iv_j \in E$, we introduce the variable $b_ij$($= 1$ if $v_iv_j$ is part of the solution; $0$ otherwise), $n_ij$ (the number of $v_iv_j$ in the solution) and $p_{kij}$($= 1$ if $v_iv_j$ $k$th edge of the solution; $0$ otherwise) for $k\in [1, 2, \ldots, L]$. 
+For each vertex $v_i \in V$, we introduce the variable $p_{qi}$. 
+If $p_{qi}$ is $1$, that means $v_i$ is the $k$th vertex of the solution path for $q\in [1, 2, \ldots, L+1]$; otherwise $p_{qi}$ is $0$.
+\subparagraph*{\textbf{Constraints.}}
 \begin{align}
-  \sum_{i=1}^m \sum_{j=1}^m \rho_{kij} = 1 &&\forall 1 \leq k \leq L \label{cons:at_most_one}\\
-  \sum_{k=1}^L \rho_{kij} = \begin{cases} h_{ij} &\text{ if } e_{ij} \text{ is an edge} \\
-    0 &\text{ otherwise}
-  \end{cases} && \forall 1 \leq i, j \leq m \label{cons:sum_h_zero}\\
-  2 \cdot \rho_{kij} \leq p[k][i] + p[k+1][j]
+	\forall v_iv_j\in E, \sum_{k \in [1, \ldots, L]}p_{kij} = n_{ij}\label{con1}\\
+	\forall v_iv_j\in E, b_{ij} \leq n_{ij}\label{con2}\\
+	\forall k \in [1, \ldots, L], \sum_{v_iv_j\in E}p_{kij} = 1\label{con3}\\
+	\forall q \in [1, \ldots, L+1], \sum_{v_i\in V}p_{qi} = 1\label{con4}\\
+	\forall v_iv_j\in E, p_{ki} + p_{(k+1)j} \geq 2 \times p_{kij}\label{con5}\\
+	p_{10} = 1,  p_{(k+1)0} = 1\label{con6}\\
+	\forall v_iv_j\in E, \sum_{v_iv_j\in E} w(v_iv_j) \times n_{ij} \leq B\label{con7}
 \end{align}
-We include Constraint \ref{cons:at_most_one} for every $1 \leq k \leq L$ so that the path only has one edge at every position.
-
-Constraint \ref{cons:sum_h_zero}.
-
+The constraint~\eqref{con1} specifies that the $n_{ij}$ is the number of the edge $v_iv_j$ in the solution rout and the constraint~\eqref{con2} enforces that $b_ij$ is $0$ if $n_{ij}$ is $0$.
+The constraints ~\eqref{con3}, ~\eqref{con4} and  ~\eqref{con5} guarantee the validity of the solution path and the constraint  ~\eqref{con6} guarantees that the solution is a cycle starting and ending at vertex $v_0$.
+Finally, the constraint~\eqref{con6} states that the computed solution has cost bounded by the cost budget. 
 \section{Conclusion}
 
 % \begin{tabular}{rl}
