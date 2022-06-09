@@ -46,6 +46,7 @@ public:
     int getNumberOfNodes() { return graph.getNumberOfNodes(); };
     int getNumberOfEdges() { return graph.getNumberOfEdges(); };
     void calculateProfit(Graph* G) ;
+    double getQuality(double profit, double area);
     double getProfit(std::list<int> path);
     double getProfit(Path path);
     double getArea(std::list<int> path);

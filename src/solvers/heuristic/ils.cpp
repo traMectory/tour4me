@@ -50,14 +50,15 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
 
         if (solution->visitedEdges[edge] == 0)
         {
-            solution->profit += edge->profit;
+            solution->profit += edge->profit * edge->cost;
         }
+        solution->area += edge->t == neigh ? edge->shoelace_forward : edge->shoelace_backward;
 
         solution->visitedEdges[edge]++;
         solution->cut_loc++;
 
-
-        if (neigh == end && solution->length >= C_min && solution->length <= C_max && solution->profit > minProfit && solution->profit - minProfit > 0.000001)
+        double quality = P->getQuality(solution->profit, solution->area);
+        if (neigh == end && solution->length >= C_min && solution->length <= C_max && quality > minProfit && quality - minProfit >0.000001)
         {
             solution->sol.erase(solution->sol.begin() + solution->cut_loc + 1);
 
@@ -75,8 +76,9 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
         solution->length -= edge->cost;
         if (solution->visitedEdges[edge] == 0)
         {
-            solution->profit -= edge->profit;
+            solution->profit -= edge->profit * edge->cost;
         }
+        solution->area -= edge->t == neigh ? edge->shoelace_forward : edge->shoelace_backward;
         solution->cut_loc--;
         solution->sol.erase(solution->sol.begin() + solution->cut_loc + 1);
 
@@ -110,18 +112,21 @@ TempSol ILS::initialisation(int maxDepth, int startLocation)
 
             if (solution.visitedEdges[e] == 0)
             {
-                solution.profit -= e->profit;
+                solution.profit -= e->profit * e->cost;
             }
             solution.length -= e->cost;
+            solution.area -= e->t == solution.sol[i + 1] ? e->shoelace_forward : e->shoelace_backward;
 
             solution.cut_loc = i;
 
-            if (!insert(&solution, C_max - solution.length, solution.profit, maxDepth))
+            if (!insert(&solution, C_max - solution.length, P->getQuality(solution.profit, solution.area), maxDepth))
             {
                 if (solution.visitedEdges[e] == 0)
                 {
-                    solution.profit += e->profit;
+                    solution.profit += e->profit * e->cost;
                 }
+
+                solution.area += e->t == solution.sol[i + 1] ? e->shoelace_forward : e->shoelace_backward;
                 solution.length += e->cost;
                 solution.visitedEdges[e]++;
             }
@@ -154,7 +159,7 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
         solution->cut_loc = A;
 
-        double minProfit = solution->profit;
+        double minProfit = P->getQuality(solution->profit, solution->area);
 
         std::vector<int> copy_path(solution->sol.size());
 
@@ -177,8 +182,9 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
                 if (solution->visitedEdges[e] == 0)
                 {
-                    solution->profit -= e->profit;
+                    solution->profit -= e->profit * e->cost;
                 }
+                solution->area -= e->t == solution->sol[i + 1] ? e->shoelace_forward : e->shoelace_backward;
             }
 
             solution->sol.erase(solution->sol.begin() + A + 1, solution->sol.end() - 1);
@@ -199,8 +205,9 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
                 if (solution->visitedEdges[e] == 0)
                 {
-                    solution->profit -= e->profit;
+                    solution->profit -= e->profit * e->cost;
                 }
+                solution->area -= e->t == solution->sol[i + 1] ? e->shoelace_forward : e->shoelace_backward;
             }
 
             solution->sol.erase(solution->sol.begin() + A + 1, solution->sol.begin() + A + R);
@@ -210,7 +217,7 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
         if (insert(solution, C_max - solution->length, minProfit, maxDepth))
         {
-            printf("  improved! profit: %f, length: %f\n", solution->profit, solution->length);
+            printf("  improved! profit: %f, length: %f\n", P->getQuality(solution->profit, solution->area), solution->length);
             noImprove = 0;
             A = 0;
             R = 1;
@@ -223,8 +230,10 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
                 if (solution->visitedEdges[e] == 0)
                 {
-                    solution->profit += e->profit;
+                    solution->profit += e->profit * e->cost;
                 }
+                solution->area += e->t == removed[i] ? e->shoelace_forward : e->shoelace_backward;
+
                 solution->length += e->cost;
                 solution->visitedEdges[e]++;
 
@@ -235,8 +244,9 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
             if (solution->visitedEdges[e] == 0)
             {
-                solution->profit += e->profit;
+                solution->profit += e->profit * e->cost;
             }
+            solution->area += e->t == solution->sol[solution->cut_loc + R] ? e->shoelace_forward : e->shoelace_backward;
             solution->length += e->cost;
             solution->visitedEdges[e]++;
 
@@ -298,14 +308,19 @@ SolveStatus ILS::solve(Problem *problem)
 
             if (solution.visitedEdges[e] == 0)
             {
-                solution.profit += e->profit;
+                solution.profit += e->profit * e->cost;
             }
+            
+            solution.area += e->t == v ? e->shoelace_forward : e->shoelace_backward;
+
             solution.length += e->cost;
             solution.visitedEdges[e]++;
             // solution.area += e->
         }
         i++;
     }
+
+    printf("area %f - %f\n", solution.area, P->getArea(P->path));
 
     printf("Before; profit: %f, length: %f\n", solution.profit, solution.length);
 

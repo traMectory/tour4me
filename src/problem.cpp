@@ -192,6 +192,10 @@ void Problem::calculateProfit(Graph* G) {
     }
 }
 
+double Problem::getQuality(double profit, double area) {
+    return (edgeProfitImportance * profit / target_distance) + (coveredAreaImportance * area / (M_PI * target_distance * target_distance));
+}
+
 double Problem::getProfit(Path path) {
     path.visited.resize(graph.v_edges.size());
 

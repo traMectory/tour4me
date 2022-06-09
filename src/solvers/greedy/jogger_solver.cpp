@@ -97,7 +97,7 @@ SolveStatus Jogger::solve(Problem *P)
                 }
 
 
-                double quality =  (P->edgeProfitImportance * profit / P->target_distance) + (P->coveredAreaImportance * P->getArea(f_path) / (M_PI * P->target_distance * P->target_distance));
+                double quality = P->getQuality(profit, P->getArea(f_path));
                 // double ar = P->getArea(f_path);
                 // f_path.reverse();
                 // std::cout << ar << "\n";

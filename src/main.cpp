@@ -33,6 +33,9 @@ public:
         algorithm = std::stoi(req.get_arg("algo"));
 
         runningTime = std::stod(req.get_arg("rt"));
+
+        runningTime = runningTime < 60 ? runningTime : 60;
+
         edgeProfitImportance = std::stod(req.get_arg("ep"));
         coveredAreaImportance = std::stod(req.get_arg("ca"));
 
@@ -58,7 +61,7 @@ public:
             return std::shared_ptr<string_response>(new string_response("Grid was not found", 404, "text/plain"));
         }
 
-        problem = Problem("../input/" + filename + (mapType == 'b' ? "_B":"") + ".txt");
+        problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
         printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         // problem.graph = problem.backbone;
         for (int i = 0; i < all_tags.size(); i++)
@@ -340,7 +343,7 @@ int main(int argc, char **argv)
 
     printf("Starting server\n");
 
-    webserver ws = create_webserver(deploy ? 80 : 8080);
+    webserver ws = create_webserver(deploy ? 80 : 8080).start_method(httpserver::http::http_utils::THREAD_PER_CONNECTION).tcp_nodelay().max_connections(8);
 
     calculate_tour uar;
     ws.register_resource("/tour", &uar);
