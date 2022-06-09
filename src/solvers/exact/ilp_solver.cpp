@@ -95,14 +95,17 @@ Graph* reduceGraph(Graph* G, int source, int number_of_vertices)
         }
     }
 
+    int c_edges = 0;
     for (Edge* edge : reducedEdges) {
         if (reducedNodes.contains(edge->s) && reducedNodes.contains(edge->t))
         {
-            Edge* rEdge = new Edge(reducedGraph->getNode(edge->s), reducedGraph->getNode(edge->t), edge->cost);
+            Edge* rEdge = new Edge(c_edges, reducedGraph->getNode(edge->s), reducedGraph->getNode(edge->t), edge->cost);
 
             rEdge->tags = edge->tags;
 
             reducedGraph->addEdge(rEdge);
+
+            c_edges++;
         }
     }
 
@@ -269,12 +272,12 @@ SolveStatus ILP::solve(Problem *P)
         env.start();
 
         int B = P->target_distance;
-        int L = 20;
+        int L = 30;
 
         // Create an empty model
         GRBModel model = GRBModel(env);
         // model.set(GRB_IntParam_MIPFocus, 3);
-        // model.set(GRB_DoubleParam_TimeLimit, 200.0);
+        model.set(GRB_DoubleParam_TimeLimit, P->runningTime);
 
 
         int m = rG->v_edges.size();
@@ -370,29 +373,27 @@ SolveStatus ILP::solve(Problem *P)
 
         // printf("Model has %d variables\n", model.getVars().size());
         GRBLinExpr objective = 0;
-        // for (int i = 0; i < m; i++)
-        // {
-        //     Edge *edge = rG->v_edges[i];
-        //     int l = edge->s;
-        //     int r = edge->t;
+        for (int i = 0; i < m; i++)
+        {
+            Edge *edge = rG->v_edges[i];
+            int l = edge->s;
+            int r = edge->t;
 
-        //     if (l>r) {
-        //         return SolveStatus::Unsolved;
-        //     }
-        //     objective += edge->cost * edge->profit * b[l][r];
-        // }
+            if (l>r) {
+                return SolveStatus::Unsolved;
+            }
+            objective += edge->cost * edge->profit * b[l][r] / P->target_distance * P->edgeProfitImportance;
+        }
 
         for (int i = 0; i < m; i++)
         {
             Edge *edge = rG->v_edges[i];
-            Node l = P->graph.v_nodes[edge->s];
-            Node r = P->graph.v_nodes[edge->t];
             // std::cout << (l.lat + r.lat) * (l.lon - r.lon) << "\n";
             // std::cout << (r.lat + l.lat) * (r.lon - l.lon) << "\n";
             for (int k = 0; k < L - 1; k++)
             {
-                objective += e[k][l.id][r.id] * (l.lat + r.lat) * (l.lon - r.lon);
-                objective += e[k][r.id][l.id] * (r.lat + l.lat) * (r.lon - l.lon);
+                objective += e[k][edge->s][edge->t] * edge->shoelace_forward / (M_PI * P->target_distance * P->target_distance) * P->coveredAreaImportance;
+                objective += e[k][edge->t][edge->s] * edge->shoelace_backward / (M_PI * P->target_distance * P->target_distance) * P->coveredAreaImportance;
             }
         }
 
@@ -496,6 +497,7 @@ SolveStatus ILP::solve(Problem *P)
         printf(" - Linked edge locations to vertex locations");
 
 
+
         model.optimize();
 
         double length = 0;
@@ -516,6 +518,12 @@ SolveStatus ILP::solve(Problem *P)
             // printf("e[%d]: %d\n", k, sum);
         }
         printf("\nlength: %f\n", length);
+
+        if (model.get(GRB_IntAttr_SolCount) == 0) {
+            return SolveStatus::Unsolved;
+        }
+
+
 
 
         int prev = -1;
@@ -546,8 +554,12 @@ SolveStatus ILP::solve(Problem *P)
             delete edge;
 
         delete rG;
+
         
-        return SolveStatus::Optimal;
+        if (model.get(GRB_DoubleParam_MIPGap) != 0.0)
+            return SolveStatus::Optimal;
+        else
+            return SolveStatus::Feasible;
     }
     catch (GRBException e)
     {

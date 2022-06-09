@@ -7,11 +7,11 @@
 
 
 
-class Jogger : public Solver
+class Selection : public Solver
 {
 
 public:
-    Jogger(){};
+    Selection(){};
 
     SolveStatus solve(Problem *P);
 };

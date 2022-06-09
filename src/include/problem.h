@@ -9,6 +9,8 @@
 #include <vector>
 #include <unordered_map>
 
+
+
 class Problem {
 protected:
     std::string graphName;
@@ -34,7 +36,7 @@ public:
     double quality = -1;
 
     double target_distance;
-    Problem(std::string file_name, std::string backbone_name);
+    Problem(std::string file_name);
     Problem() {};
 
     void outputPath(std::string file_name);
@@ -45,7 +47,9 @@ public:
     int getNumberOfEdges() { return graph.getNumberOfEdges(); };
     void calculateProfit(Graph* G) ;
     double getProfit(std::list<int> path);
+    double getProfit(Path path);
     double getArea(std::list<int> path);
+    double getArea(Path path);
     double getLength(std::list<int> path);
 
     std::vector<std::string> metadata;

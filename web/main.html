@@ -72,9 +72,9 @@
 
         <div class="input-group mb-3">
 
-            <input type="text" id="distance" class="form-control" value="50000" aria-label="Target Distance (m)">
+            <input type="text" id="distance" class="form-control" value="50" aria-label="Target Distance (m)">
             <div class="input-group-append">
-                <!-- <span class="input-group-text">m</span> -->
+                <button class="btn btn-secondary" disabled type="button">km</button>
                 <button type="button" class="btn btn-primary" onclick="getPath()">Compute Path</button>
             </div>
         </div>
@@ -103,9 +103,9 @@
                 <div class="modal-body">
                     <h5>Underlying map:</h5>
                     <div class="btn-group" style="display: block; ">
-                        <input type="radio" class="btn-check" name="mapType" id="cycle_osm" autocomplete="off" checked />
-                        <label class="btn btn-outline-success" for="cycle_osm">Backbone</label>
-                        <input type="radio" class="btn-check" name="mapType" id="osm" autocomplete="off" />
+                        <input type="radio" class="btn-check" name="mapType" value="b" id="backbone" autocomplete="off"  />
+                        <label class="btn btn-outline-success" for="backbone">Backbone</label>
+                        <input type="radio" class="btn-check" name="mapType" value="o" id="osm" autocomplete="off" checked/>
                         <label class="btn btn-outline-success" for="osm">OSM</label>
                     </div>
                     <br>
@@ -380,7 +380,7 @@
 
             var lat = marker.getLatLng()["lat"];
             var lon = marker.getLatLng()["lng"];
-            var dis = document.getElementById("distance").value
+            var dis = document.getElementById("distance").value * 1000;
 
             $.ajax({
                 url: "graphdata?lat=" + lat + "&lon=" + lon,
@@ -433,10 +433,10 @@
             });
 
             var algorithm = document.querySelector('input[name="algorithm"]:checked').value;
+            
+            var mapType = document.querySelector('input[name="mapType"]:checked').value;
+            console.log(mapType);
 
-            if (algorithm == 2) {
-                getBackbone()
-            }
 
             var runningTime = document.getElementById("runningTime").value;
 
@@ -448,7 +448,7 @@
 
 
             $.ajax({
-                url: "tour?dis=" + dis + "&lat=" + lat + "&lon=" + lon + "&algo=" + algorithm + tag_str + "&rt=" + runningTime + "&ep=" + edgeProfit + "&ca=" + coveredArea,
+                url: "tour?dis=" + dis + "&lat=" + lat + "&lon=" + lon + "&algo=" + algorithm + tag_str + "&rt=" + runningTime + "&ep=" + edgeProfit + "&ca=" + coveredArea + "&mt=" + mapType,
                 contentType: "application/json",
                 dataType: 'json',
                 success: function (result) {

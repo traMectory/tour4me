@@ -36,6 +36,8 @@ public:
         edgeProfitImportance = std::stod(req.get_arg("ep"));
         coveredAreaImportance = std::stod(req.get_arg("ca"));
 
+        char mapType = req.get_arg("mt")[0];
+
         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
         double max_lat = min_lat + 2 * lat_pad + lat_gran;
         double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
@@ -48,14 +50,15 @@ public:
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
         std::cout << filename << "\n";
-        
+
         std::ifstream f(filename.c_str());
-        if (f.good()) {
+        if (f.good())
+        {
             std::cout << filename << " Was not found!\n";
             return std::shared_ptr<string_response>(new string_response("Grid was not found", 404, "text/plain"));
         }
 
-        problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
+        problem = Problem("../input/" + filename + (mapType == 'b' ? "_B":"") + ".txt");
         printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         // problem.graph = problem.backbone;
         for (int i = 0; i < all_tags.size(); i++)
@@ -102,26 +105,32 @@ public:
 
         problem.target_distance = distance;
 
-
         auto init_time_2 = std::chrono::high_resolution_clock::now();
         auto algo_time_1 = std::chrono::high_resolution_clock::now();
 
-        SolveStatus status;
+        SolveStatus status = SolveStatus::Unsolved;
+
         switch (algorithm)
         {
         case 0:
         {
-            Jogger solver;
+            Selection solver;
             status = solver.solve(&problem);
             break;
         }
         case 1:
         {
-            ILS solver;
+            Jogger solver;
             status = solver.solve(&problem);
             break;
         }
         case 2:
+        {
+            ILS solver;
+            status = solver.solve(&problem);
+            break;
+        }
+        case 3:
         {
             ILP solver;
             status = solver.solve(&problem);
@@ -136,9 +145,8 @@ public:
         problem.metadata.push_back("Initialization time (ms): " + std::to_string(init_time_int.count()));
         problem.metadata.push_back("Algorithm computation time (ms): " + std::to_string(algo_time_int.count()));
         problem.metadata.push_back("Profit: " + std::to_string(problem.getProfit(problem.path)) + " (theoretical upper bound: " + std::to_string(problem.target_distance) + ")");
-        problem.metadata.push_back("Area: " + std::to_string(problem.getArea(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
+        problem.metadata.push_back("Area: " + std::to_string(problem.getArea(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance * problem.target_distance) + ")");
         // problem.metadata.push_back("Quality: " + std::to_string(problem.getQuality(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
-
 
         switch (status)
         {
@@ -307,11 +315,12 @@ public:
 };
 
 int main(int argc, char **argv)
-{    
+{
     parseOptions(argc, argv);
-    
-    if (test) {
-        Problem problem = Problem("../input/grid-51.6250-51.1250-7.9375-7.1875.txt", "../input/grid-51.6250-51.1250-7.9375-7.1875_B.txt");
+
+    if (test)
+    {
+        Problem problem = Problem("../input/grid-51.6250-51.1250-7.9375-7.1875.txt");
 
         problem.start = 156666;
 

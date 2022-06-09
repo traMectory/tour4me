@@ -1,9 +1,8 @@
 #include "problem.h"
 
 
-Problem::Problem(std::string file_name, std::string backbone_name) {
+Problem::Problem(std::string file_name) {
     graph = Graph(file_name);
-    backbone = Graph(backbone_name);
 }
 
 
@@ -154,6 +153,10 @@ std::string Problem::outputToString() {
         outputString += "        [" + std::to_string(graph.v_nodes[*it].lat) + "," + std::to_string(graph.v_nodes[*it].lon) + "], \n";
 
         Edge* edge = graph.getEdge(*it, *(std::next(it)));
+        
+        if (edge == nullptr)
+            continue;
+
         bool reverse = graph.v_nodes[*it].g_id < graph.v_nodes[*(std::next(it))].g_id;
         for (int j = 0; j < edge->geo_locs.size(); j++) {
             auto pair = edge->geo_locs[reverse ? j : edge->geo_locs.size() - j - 1];
@@ -179,7 +182,7 @@ void Problem::calculateProfit(Graph* G) {
     for (Edge* edge : G->v_edges) {
         edge->profit = 0.0001;
         for (std::string tag: edge->tags) {
-            if (pref_tags.contains(tag)) {
+            if (pref_tags.contains(tag) ) {
                 edge->profit += 1;
             }
             if (avoid_tags.contains(tag)) {
@@ -187,6 +190,21 @@ void Problem::calculateProfit(Graph* G) {
             }
         }
     }
+}
+
+double Problem::getProfit(Path path) {
+    path.visited.resize(graph.v_edges.size());
+
+    double quality = 0.0;
+
+    for (DirEdge dEdge : path.edges) {
+        if (path.visited[dEdge.edge->id] == 0) {
+            quality += dEdge.edge->cost * dEdge.edge->profit;
+            path.visited[dEdge.edge->id] ++;
+        }
+    }
+
+    return quality;
 }
 
 double Problem::getProfit(std::list<int> path) {
@@ -210,12 +228,29 @@ double Problem::getProfit(std::list<int> path) {
     return quality;
 }
 
+
+
+double Problem::getArea(Path path) {
+    double area = 0.0;
+
+    for (DirEdge dEdge : path.edges) {
+        area += !dEdge.reversed ? dEdge.edge->shoelace_forward : dEdge.edge->shoelace_backward;
+    }
+    return area;
+}
+
 double Problem::getArea(std::list<int> path) {
-    std::set<Edge*> edgSet;
+    
 
-    double quality = 0.0;
+    double area = 0.0;
 
-    return quality;
+
+    for (auto it = path.begin(), end = --path.end(); it != end; ++it) {
+        Edge* edge = graph.getEdge(*it, *(std::next(it)));
+        area += *it == edge->s ? edge->shoelace_forward : edge->shoelace_backward;
+    }
+
+    return area;
 }
 
 double Problem::getLength(std::list<int> path) {

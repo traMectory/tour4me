@@ -14,6 +14,8 @@
 
 typedef std::pair<double, std::pair<int, double>> pi;
 
+
+
 class Graph
 {  
 
@@ -34,7 +36,7 @@ public:
     
 
     void addEdge(Edge* edge);
-    void addEdge(long int s_id, long int t_id, double length);
+    Edge* addEdge(int id, long int s_id, long int t_id, double length);
 
     Edge* getEdge(int s_id, int t_id);
     bool edgeExists(int s_id, int t_id);
@@ -51,3 +53,8 @@ public:
     double quality(std::vector<int> path);
     double length(std::vector<int> path);
 };
+
+double getDistanceFromLatLon(Node node1, Node node2);
+
+std::list<std::pair<int, Path>> ring(Graph* G, int source, double ldis, double udis, int node_limit, std::set<int>* contained);
+double shortestPath(Graph* g,int start, int end);

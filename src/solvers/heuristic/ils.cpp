@@ -1,94 +1,5 @@
 #include "ils.h"
 
-double deg2rad(double deg)
-{
-    return deg * (M_PI / 180);
-}
-
-double ILS::getDistanceFromLatLon(int n1, int n2)
-{
-    Node node1 = P->graph.v_nodes[n1];
-    Node node2 = P->graph.v_nodes[n2];
-
-    double R = 6371e3;                            // Radius of the earth in km
-    double dLat = deg2rad(node2.lat - node1.lat); // deg2rad below
-    double dLon = deg2rad(node2.lon - node1.lon);
-    double a =
-        sin(dLat / 2) * sin(dLat / 2) +
-        cos(deg2rad(node1.lat)) * cos(deg2rad(node2.lat)) *
-            sin(dLon / 2) * sin(dLon / 2);
-    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    double d = R * c; // Distance in km
-    return d;
-}
-
-/*
- * A* implementation
- */
-double ILS::shortestPath(int start, int end)
-{
-    // The output array. dist[i] will hold the shortest
-    // distance from src to i
-    std::unordered_map<int, double> dist;
-    std::priority_queue<pi, std::vector<pi>, std::greater<pi>> queue;
-
-    // Distance of source vertex from itself is always 0
-    dist.insert(std::make_pair(start, 0.0));
-    queue.push(std::make_pair(0.0, std::make_pair(start, 0.0)));
-
-    while (queue.size() > 0)
-    {
-        pi current = queue.top();
-        queue.pop();
-
-        double actualHeuristic = current.first;
-        int currentNode = current.second.first;
-        double actual = current.second.second;
-
-        auto bestKnown = dist.find(currentNode);
-        double bestKnownDist = bestKnown->second;
-
-        if (currentNode == end)
-            return dist[currentNode];
-
-        // auto bestKnownActual = actual_dist.find(currentNode);
-        // double bestKnownActual =
-
-        // int x;
-        // std::cin >> x;
-
-        // printf("%f, %f\n", distance, bestKnownDist);
-
-        // printf("%ld\n", bestKnown);
-
-        if (bestKnown == dist.end())
-        {
-            dist.insert(std::make_pair(currentNode, actual));
-            bestKnownDist = actual;
-        }
-
-        if (bestKnownDist != actual)
-            continue;
-
-        for (Edge* edge : P->graph.v_nodes[currentNode].incident)
-        {
-            int neighborId =  edge->s == currentNode ? edge->t : edge->s;
-
-            double newDistance = bestKnownDist + edge->cost;
-
-            if (dist.find(neighborId) == dist.end())
-                dist.insert(std::make_pair(neighborId, 2147483647));
-
-            if (newDistance < dist[neighborId])
-            {
-                double heuristic = newDistance + getDistanceFromLatLon(neighborId, end);
-                queue.push(std::make_pair(heuristic, std::make_pair(neighborId, newDistance)));
-                dist[neighborId] = newDistance;
-            }
-        }
-    }
-    return 2147483647;
-}
 
 bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
 {
@@ -102,7 +13,7 @@ bool ILS::insert(TempSol *solution, double dist, double minProfit, int maxDepth)
     int start = solution->sol[solution->cut_loc];
     int end = solution->sol[solution->cut_loc + 1];
 
-    if (shortestPath(start, end) >= dist)
+    if (shortestPath(&P->graph, start, end) >= dist)
     {
         return false;
     }
@@ -228,7 +139,9 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
     int end;
 
-    while (noImprove < maxNoImprove)
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    while (duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count() < P->runningTime*1000)
     {
         std::vector<int> removed;
 
@@ -342,6 +255,7 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
             }
         }
     }
+    printf("maxNoImprove: %d\n", noImprove);
 }
 
 SolveStatus ILS::solve(Problem *problem)
@@ -367,6 +281,7 @@ SolveStatus ILS::solve(Problem *problem)
     solution.sol.resize(P->path.size());
     solution.length = 0;
     solution.profit = 0;
+    solution.area = 0;
 
     int i = 0;
     for (int v : P->path) {
@@ -387,6 +302,7 @@ SolveStatus ILS::solve(Problem *problem)
             }
             solution.length += e->cost;
             solution.visitedEdges[e]++;
+            // solution.area += e->
         }
         i++;
     }
@@ -404,7 +320,7 @@ SolveStatus ILS::solve(Problem *problem)
         P->path.push_back(v_sol);
     }
 
-    if (C_min <= solution.length && solution.length <= C_max)
+    if (C_min <= solution.length && solution.length <= C_max + C_max/10)
     {
         return SolveStatus::Feasible;
     }
