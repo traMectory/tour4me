@@ -1,0 +1,9 @@
+*.json
+cache
+gmon.out
+main
+analysis.txt
+input/*
+output/*
+build/*
+debug/*

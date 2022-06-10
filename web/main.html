@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .loader {
+            border: 16px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 16px solid #337ab7;
+            margin-left: auto;
+            margin-right: auto;
+            width: 120px;
+            height: 120px;
+            -webkit-animation: spin 2s linear infinite;
+            /* Safari */
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+
+    <title>tourGenerator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+        integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+        crossorigin=""></script>
+    <!-- head definitions go here -->
+</head>
+
+<body>
+
+    <div id="overlay"
+        style="position: fixed; display:none; width: 100%; height: 100%; top:0; left:0; background-color: rgba(0,0,0,0.2); z-index:2;">
+        <div id="text"
+            style="position: absolute; top: 50%; left: 50%; font-size: 50px; color: white; transform: translate(-50%,-50%); -ms-transform: translate(-50%,-50%);">
+            Calculating route
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <div id="map" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 0;">
+
+    </div>
+
+
+    <div class="btn-grp" style="position:fixed; z-index: 1; top: 20px; right:20px;">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#infoModal">Show Route
+            Information</button>
+        <button class="btn btn-success" onclick="toGPX()">Download to GPX</button>
+    </div>
+
+
+
+
+
+    <div
+        style="position: fixed; z-index: 1; width: 100%; margin: 60px auto 0; padding: 20px; bottom:0; background-color:rgba(255, 255, 255, 0.8); height: auto;">
+
+        <div class="input-group mb-3">
+
+            <input type="text" id="distance" class="form-control" value="50" aria-label="Target Distance (m)">
+            <div class="input-group-append">
+                <button class="btn btn-secondary" disabled type="button">km</button>
+                <button type="button" class="btn btn-primary" onclick="getPath()">Compute Path</button>
+            </div>
+        </div>
+
+
+        <div class="btn-group" id="algoRadio">
+            <!-- <input type="radio" class="btn-check" name="algorithm" id="jogger" autocomplete="off" checked />
+                <label class="btn btn-primary" for="jogger">Jogger</label> -->
+        </div>
+
+        <button type="button" class="btn btn-warning" data-bs-toggle="modal" style="position:absolute; right:20px" ;
+            data-bs-target="#settingsModal">
+            Open settings
+        </button>
+
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="false">
+        <div class="modal-dialog modal-lg ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="settingsModalLabel">Settings</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h5>Underlying map:</h5>
+                    <div class="btn-group" style="display: block; ">
+                        <input type="radio" class="btn-check" name="mapType" value="b" id="backbone" autocomplete="off"  />
+                        <label class="btn btn-outline-success" for="backbone">Backbone</label>
+                        <input type="radio" class="btn-check" name="mapType" value="o" id="osm" autocomplete="off" checked/>
+                        <label class="btn btn-outline-success" for="osm">OSM</label>
+                    </div>
+                    <br>
+                    <h5>Type of roads:</h5>
+                    <div class="btn-group tagsHighway pre-scrollable"
+                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsHighway"></div>
+                    <br>
+                    <h5>Type of surfaces:</h5>
+                    <div class="btn-group mr-2 tagsSurface pre-scrollable"
+                        style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsSurface"></div>
+                    <br>
+                    <h5>Running time:</h5>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="2" aria-label="Running Time" id="runningTime">
+                        <span class="input-group-text">seconds</span>
+                    </div>
+                    <br>
+                    <h5>Quality Distribution:</h5>
+                    <div class="row">
+                        <div class="col col-md-2">
+                            <label class="form-label">Edge Profit</label>
+                        </div>
+                        <div class="col col-md-9">
+                            <input type="range" class="form-range" oninput="changeRanges(this, 'coveredArea')"
+                                onchange="changeRanges(this, 'coveredArea')" min="0" max="100" id="edgeProfit">
+                        </div>
+                        <div class="col col-md-1">
+                            <label class="form-label" style="float: right;" id="edgeProfitLabel">100%</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col col-md-2">
+                            <label class="form-label">Covered Area</label>
+                        </div>
+                        <div class="col col-md-9">
+                            <input type="range" class="form-range" oninput="changeRanges(this, 'edgeProfit')"
+                                onchange="changeRanges(this, 'edgeProfit')" min="0" max="100" id="coveredArea">
+                        </div>
+                        <div class="col col-md-1">
+                            <label class="form-label" style="float: right;" id="coveredAreaLabel">100%</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="false">
+        <div class="modal-dialog modal-lg ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="infoModalLabel">Route Information</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- <h5></h5> -->
+                    <div id="metadata-body">
+                        <p>No route exists yet!</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+    <script>
+        var marker;
+        var map;
+        var line;
+        var path = [];
+
+        var backbone = [];
+
+        var outer_box;
+        var inner_box;
+
+        var metadata = [];
+
+        var tags;
+        var algos;
+
+        const abs_min_lat = 50;
+        const abs_max_lat = 52;
+        const lat_gran = 0.5 / 2
+        const lat_pad = 0.5 / 4
+
+        const abs_min_lon = 5.5;
+        const abs_max_lon = 9.25;
+        const lon_gran = 0.75 / 2
+        const lon_pad = 0.75 / 4
+
+
+        var onClick = function (e) {
+            marker.setLatLng(e.latlng);
+        };
+
+        $(document).ready(function () {
+
+            var center_lat, center_lon;
+            var max_lat, min_lat, max_lon, min_lon;
+
+            $.ajax({
+                url: "graphdata",
+                contentType: "application/json",
+                dataType: 'json',
+                success: function (result) {
+                    center_lat = result["center_lat"];
+                    center_lon = result["center_lon"];
+
+                    tags = result["tags"];
+                    algos = result["algorithms"];
+
+                    map = L.map('map').setView([center_lat, center_lon], 14);
+
+                    var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+                        maxZoom: 25,
+                        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+                            'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                        id: 'mapbox/streets-v11',
+                        tileSize: 512,
+                        zoomOffset: -1
+                    }).addTo(map);
+
+                    // var polyline = L.polyline(path, {color: 'red'}).addTo(map);
+
+                    // zoom the map to the polyline
+
+                    marker = L.marker([center_lat, center_lon], { draggable: 'true' }).addTo(map);
+
+                    outer_box = L.polygon(
+                        [[[900, -1800],
+                        [900, 1800],
+                        [-900, 1800],
+                        [-900, -1800]], // outer ring
+                        [[abs_min_lat - lat_pad, abs_min_lon - lon_pad],
+                        [abs_min_lat - lat_pad, abs_max_lon + lon_pad],
+                        [abs_max_lat + lat_pad, abs_max_lon + lon_pad],
+                        [abs_max_lat + lat_pad, abs_min_lon - lon_pad]] // actual cutout polygon
+                        ], { interactive: false, color: 'red' }).addTo(map);
+
+                    map.on('click', onClick);
+
+                    tagButtonsHighway = document.getElementById("tagButtonsHighway");
+                    tagButtonsSurface = document.getElementById("tagButtonsSurface");
+
+                    tags.forEach(tag => {
+                        var name = tag[0][0].toUpperCase() + tag[0].slice(1);
+
+                        tagButtons = tagButtonsHighway;
+                        if (tag[1] == 1) {
+                            tagButtons = tagButtonsSurface;
+                        }
+
+                        if (name == "Path" || name == "Track") {
+                            tagButtons.innerHTML += "<label class=\"btn btn-cycle btn-success desire\" id=\"" + tag + "\">" + name + "</label>"
+                        } else {
+                            tagButtons.innerHTML += "<label class=\"btn btn-cycle btn-outline-secondary neutral\" id=\"" + tag + "\">" + name + "</label>"
+                        }
+
+                    });
+
+
+                    algosRadio = document.getElementById("algoRadio");
+
+                    const algo = algos[0];
+                    var name = algo[0].toUpperCase() + algo.slice(1);
+                    algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + 0 + " id=\"" + algo + "\" autocomplete=\"off\" checked/>";
+                    algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
+
+
+                    for (let index = 1; index < algos.length; index++) {
+                        const algo = algos[index];
+                        var name = algo[0].toUpperCase() + algo.slice(1);
+                        algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + index + " id=\"" + algo + "\" autocomplete=\"off\" />";
+                        algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
+
+                    }
+
+                    $(".btn-group > .btn-cycle").click(function () {
+                        if ($(this).hasClass("neutral")) {
+                            $(this).removeClass("neutral");
+                            $(this).removeClass("btn-outline-secondary");
+
+                            $(this).addClass("desire");
+                            $(this).addClass("btn-success");
+                        } else if ($(this).hasClass("desire")) {
+                            $(this).removeClass("desire");
+                            $(this).removeClass("btn-success");
+
+                            $(this).addClass("avoid");
+                            $(this).addClass("btn-danger");
+                        } else if ($(this).hasClass("avoid")) {
+                            $(this).removeClass("desire"); edgeProfit
+                            $(this).removeClass("btn-danger");
+
+                            $(this).addClass("neutral");
+                            $(this).addClass("btn-outline-secondary");
+                        }
+                    });
+
+                    changeRanges(document.getElementById("edgeProfit"), "coveredArea")
+                    // getBackbone();
+
+                },
+                error: function (xhr, status) {
+                    alert("Failed to contact server");
+                }
+            })
+
+
+        });
+
+        function changeRanges(current, target) {
+            label = document.getElementById(current.id + "Label")
+            label.innerHTML = (current.value) + "%"
+
+
+            document.getElementById(target).value = 100 - current.value;
+            // $("#" + target).slider('refresh');
+
+            targetLabel = document.getElementById(target + "Label")
+            targetLabel.innerHTML = (100 - current.value) + "%"
+        }
+
+
+        function getBackbone() {
+            var lat = marker.getLatLng()["lat"];
+            var lon = marker.getLatLng()["lng"];
+
+            $.ajax({
+                url: "backbone?lat=" + lat + "&lon=" + lon,
+                contentType: "application/json",
+                dataType: 'json',
+                success: function (result) {
+                    backbone.forEach(backbone_line => {
+                        backbone_line.remove(map);
+                    });
+
+                    backbone = []
+
+                    result["backbone"].forEach(backbone_line => {
+                        colorstr = "orange";
+                        backbone_line["tags"].forEach(tag => {
+                            tag_button = document.getElementById(tag);
+                            if (tag_button.classList.contains("desire")) {
+                                colorstr = "green";
+                            }
+                        });
+                        b_line = L.polyline(backbone_line["line"], { color: colorstr, opacity: 0.2 }).addTo(map);
+                        backbone.push(b_line)
+                    });
+                },
+                error: function (xhr, status) {
+                    document.getElementById("overlay").style.display = "none";
+                    alert("Failed to load backbone!");
+                }
+            })
+        }
+
+
+        function getPath() {
+
+
+            var lat = marker.getLatLng()["lat"];
+            var lon = marker.getLatLng()["lng"];
+            var dis = document.getElementById("distance").value * 1000;
+
+            $.ajax({
+                url: "graphdata?lat=" + lat + "&lon=" + lon,
+                contentType: "application/json",
+                dataType: 'json',
+                success: function (result) {
+                    max_lat = result["max_lat"];
+                    min_lat = result["min_lat"];
+                    max_lon = result["max_lon"];
+                    min_lon = result["min_lon"];
+
+                    if (inner_box) {
+                        inner_box.remove(map);
+                    }
+
+                    inner_box = L.polygon(
+                        [[[abs_min_lat - lat_pad, abs_min_lon - lon_pad],
+                        [abs_min_lat - lat_pad, abs_max_lon + lon_pad],
+                        [abs_max_lat + lat_pad, abs_max_lon + lon_pad],
+                        [abs_max_lat + lat_pad, abs_min_lon - lon_pad]],
+                        [[min_lat, min_lon],
+                        [min_lat, max_lon],
+                        [max_lat, max_lon],
+                        [max_lat, min_lon]]
+                        ], { interactive: false, color: 'yellow' }).addTo(map);
+                },
+                error: function (xhr, status) {
+                    document.getElementById("overlay").style.display = "none";
+                    alert("Failed to load backbone!");
+                }
+            })
+
+
+            if (isNaN(dis)) {
+                alert("Must input numbers");
+                return false;
+            }
+
+            tag_str = "&tags="
+
+            tags.forEach(tag => {
+                tag_button = document.getElementById(tag);
+                if (tag_button.classList.contains("neutral")) {
+                    tag_str += "n";
+                } else if (tag_button.classList.contains("desire")) {
+                    tag_str += "d";
+                } else if (tag_button.classList.contains("avoid")) {
+                    tag_str += "a";
+                }
+            });
+
+            var algorithm = document.querySelector('input[name="algorithm"]:checked').value;
+            
+            var mapType = document.querySelector('input[name="mapType"]:checked').value;
+            console.log(mapType);
+
+
+            var runningTime = document.getElementById("runningTime").value;
+
+            var edgeProfit = document.getElementById("edgeProfit").value / 100;
+            var coveredArea = document.getElementById("coveredArea").value / 100;
+
+            document.getElementById("overlay").style.display = "block";
+
+
+
+            $.ajax({
+                url: "tour?dis=" + dis + "&lat=" + lat + "&lon=" + lon + "&algo=" + algorithm + tag_str + "&rt=" + runningTime + "&ep=" + edgeProfit + "&ca=" + coveredArea + "&mt=" + mapType,
+                contentType: "application/json",
+                dataType: 'json',
+                success: function (result) {
+                    if (line) {
+                        line.remove(map);
+                    }
+                    line = L.polyline(result["path"], { color: 'blue', weight: 5 }).addTo(map);
+
+                    path = result["path"];
+
+                    document.getElementById("overlay").style.display = "none";
+                    map.fitBounds(line.getBounds());
+
+                    metadata = result["meta"];
+
+                    m_body = document.getElementById("metadata-body");
+
+                    m_body.innerHTML = ""
+                    metadata.forEach(element => {
+                        m_body.innerHTML += "<p>" + element + "</p>\n";
+                    });
+
+
+
+                },
+                error: function (xhr, status) {
+                    document.getElementById("overlay").style.display = "none";
+                    alert("Failed to calculate a route!");
+                }
+            })
+
+        }
+
+        function toGPX() {
+            file_name = "temp"
+            xml = "<?xml version='1.0' encoding='UTF-8'?>\n<gpx version=\"1.1\" creator=\"JeBoi\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n";
+            xml += "  <metadata>\n    <name>" + file_name + "</name>\n  </metadata>\n  <trk>\n    <name>" + file_name + "</name>\n";
+            xml += "    <trkseg>\n";
+
+            path.forEach(node => {
+                xml += "      <trkpt lat=\"" + node[0] + "\" lon=\"" + node[1] + "\"></trkpt>\n";
+            });
+
+            xml += "    </trkseg>\n";
+            xml += "  </trk>\n";
+            xml += "</gpx>";
+
+            const url = 'data:text/json;charset=utf-8,' + xml;
+            const link = document.createElement('a');
+            link.download = file_name + ".gpx";
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+        }
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+
+
+</body>
+
+</html>
