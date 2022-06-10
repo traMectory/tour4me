@@ -26,6 +26,11 @@ Make sure all requirements have been installed, compile the code with:
     cmake ..
     cmake --build .
     
+To download the street graphs and backbones from OpenStreetMap, run:
+    
+    mkdir input && cd input
+    python3 ../python_osm/get_graph.py
+    
 # Usage
 
     src/tour4me <options>
