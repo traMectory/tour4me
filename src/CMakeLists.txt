@@ -24,7 +24,7 @@ include_directories(${GUROBI_INCLUDE_DIRS})
 
 
 include_directories(include)
-add_executable(tourGenerator ${sources})
+add_executable(tour4me ${sources})
 include_directories(solvers)
 include_directories(solvers/exact)
 include_directories(solvers/greedy)
