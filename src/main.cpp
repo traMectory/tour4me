@@ -61,7 +61,10 @@ public:
             return std::shared_ptr<string_response>(new string_response("Grid was not found", 404, "text/plain"));
         }
 
+        mtx.lock();
         problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
+        mtx.unlock();
+
         printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         // problem.graph = problem.backbone;
         for (int i = 0; i < all_tags.size(); i++)

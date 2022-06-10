@@ -10,12 +10,15 @@
 #include <iomanip>
 #include <sstream>
 #include <cassert>
+#include <mutex>
 #include <chrono>
 
 #include "jogger_solver.h"
 #include "selection_solver.h"
 
 std::string algoType;
+
+std::mutex mtx;
 
 double abs_min_lat = 50;
 double abs_max_lat = 52;
