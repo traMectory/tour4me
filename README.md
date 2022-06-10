@@ -22,7 +22,7 @@ Our Framework contains 4 algorithms.
 # Installation
 Make sure all requirements have been installed, compile the code with: 
 
-    mkdir build & cd build
+    mkdir build && cd build
     cmake ..
     cmake --build .
     
