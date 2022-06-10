@@ -5,26 +5,31 @@ A framework for straightforward integration of algorithms that solve the Touring
 Github Page: https://tramectory.github.io/tour4me/
 # Requirements
 <ol>
-<li>Gurobi </li>
-<li> g++ </li>
-<li> cmake</li>
+<li>Gurobi : v9.5 : https://www.gurobi.com/</li>
+<li>libhttpserver : https://github.com/etr/libhttpserver</li>
+<li>g++ : 11.2.0</li>
+<li>cmake : 3.23.1</li>
 </ol>
+
 # Description
 Our Framework contains 4 algorithms.
-* ors(rs) : a dynamic MIS algorithm based on orthogonal range searching (for unit squares)
-* graph(cg): a graph-based dynamic MIS algorithm
-* grid(sl): a grid-based 4-approximation algorithm （for unit squares）
-* gridK(slk): The group-shifting based algorithm. Need a extra parameter -k (for unit squares)
-* line(arrow): stabbing-line based 2-approximation algorithm
+* Greedy Selection : a very simple greedy algorihtm for demonstration purposes
+* Jogging Solver : a slightly more involved greedy algorithm capable of generating nice tours
+* Iterative Local Search : given an initial solution, this algorithm makes local improvements
+* Integer Linear Programming : using an ILP solver we attempt to calculate the optimal route
 
 
 # Installation
-Compile the source with the Debug/Makefile file.
+Make sure all requirements have been installed, compile the code with: 
+
+    mkdir build && cd build
+    cmake ..
+    cmake --build .
+    
 # Usage
-./tour4me <instance> [options]
 
-
---output, -o : output the solution</br>
---help, -h : output this help</br>
---algorithm, -a : algorithm in use, please using the abbreviations (see description above)</br>
---file: input file</br>
+    src/tour4me <options>
+    
+    -h : output this help
+    -t : run the jogging solver on an test instance without starting a server instance
+    -d : run for deployment, server will be hosted on port 80 instead of 8080
