@@ -1,7 +1,7 @@
 #include "miscellaneous.h"
 
 void printUsage() {
-    printf("");
+    printf("\n");
 }
 
 void parseOptions(int argc, char* argv[]) {
@@ -27,5 +27,4 @@ void parseOptions(int argc, char* argv[]) {
     if (result.count("test"))
         test = true;
 
-    algoType = result["a"].as<std::string>();
 }
