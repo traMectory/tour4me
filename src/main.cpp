@@ -52,27 +52,23 @@ public:
 
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
-        std::cout << filename << "\n";
 
         std::ifstream f(filename.c_str());
         if (f.good())
         {
-            std::cout << filename << " Was not found!\n";
             return std::shared_ptr<string_response>(new string_response("Grid was not found", 404, "text/plain"));
         }
 
         mtx.lock();
         problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
+        printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         mtx.unlock();
 
-        printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
-        // problem.graph = problem.backbone;
         for (int i = 0; i < all_tags.size(); i++)
         {
             if (req.get_arg("tags")[i] == 'd')
             {
                 problem.pref_tags.insert(all_tags[i].attr);
-                std::cout << "desired: " << all_tags[i].attr << "\n";
             }
         }
 
@@ -82,7 +78,7 @@ public:
         for (Node v : problem.graph.v_nodes)
         {
             double dis = v.distance(lat, lon);
-            // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
+            
             if (dis < best_distance)
             {
 
@@ -91,7 +87,6 @@ public:
             }
         }
 
-        std::cout << start.id << "\n";
 
         problem.start = start.id;
         problem.graph.center_lon = start.lon;
@@ -104,8 +99,6 @@ public:
         problem.path.clear();
         problem.quality = -1;
         problem.calculateProfit(&problem.graph);
-
-        printf("%f, %f\n", start.lat, start.lon);
 
         // problem.pref_tags.insert("gravel");
 
@@ -157,7 +150,6 @@ public:
         switch (status)
         {
         case SolveStatus::Optimal:
-            printf("Optimal solution found!\n");
             return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
             if (gpx)
             {
@@ -165,7 +157,6 @@ public:
             }
             break;
         case SolveStatus::Feasible:
-            printf("Feasible solution found\n");
             return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
             if (gpx)
             {
@@ -173,7 +164,6 @@ public:
             }
             break;
         case SolveStatus::Unsolved:
-            printf("Problem was unsolved\n");
             return std::shared_ptr<string_response>(new string_response("Not solved", 400, "text/plain"));
             break;
         }
@@ -231,91 +221,11 @@ class graph_data : public http_resource
     }
 };
 
-// class backbone_data : public http_resource
-// {
-//     const std::shared_ptr<http_response> render_GET(const http_request &req)
-//     {
-
-//         Node start;
-//         double best_distance = 1000000000000;
-//         double lat = std::stod(req.get_arg("lat"));
-//         double lon = std::stod(req.get_arg("lon"));
-
-//         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
-//         double max_lat = min_lat + 2 * lat_pad + lat_gran;
-//         double min_lon = lon - std::fmod((lon - abs_min_lon), lon_gran) - lon_pad;
-//         double max_lon = min_lon + 2 * lon_pad + lon_gran;
-
-//         std::stringstream stream;
-//         stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
-//         std::string filename = stream.str();
-
-//         Problem problem = Problem("../input/" + filename + ".txt", "../input/" + filename + "_B.txt");
-//         problem.graph = problem.backbone;
-//         for (Node v : problem.graph.v_nodes)
-//         {
-//             double dis = v.distance(lat, lon);
-//             // printf("s: [%f, %f], v: [%f, %f], dis: [%f]", 51.4894, 7.40577);
-//             if (dis < best_distance)
-//             {
-
-//                 best_distance = dis;
-//                 start = v;
-//             }
-//         }
-
-//         problem.start = start.id;
-
-//         Graph *rG = reduceGraph(&problem.graph, problem.start, 200);
-//         int prev_n = 1000000000;
-//         while (rG->v_nodes.size() < prev_n)
-//         {
-//             prev_n = rG->v_nodes.size();
-//             rG = simplifyGraph(rG, problem.start);
-//         }
-
-//         std::string response = "{\n";
-//         response += "  \"backbone\": \n    [\n";
-
-//         for (Edge *edge : rG->v_edges)
-//         {
-
-//             response += "      {\n        \"line\": [ [" + std::to_string(edge->s.lat) + "," + std::to_string(edge->s.lon) + "],";
-//             // for (int j = 0; j < edge->geo_locs.size(); j++) {
-//             //     // auto pair = edge->geo_locs[i.g_id < path[i+1].g_id ? j : edge->geo_locs.size() - j - 1];
-//             //     response += "        [" + std::to_string(edge->geo_locs[j].first) + "," + std::to_string(edge->geo_locs[j].second) + "], \n";
-//             // }
-//             response += " [" + std::to_string(edge->t.lat) + "," + std::to_string(edge->t.lon) + "] ],\n";
-//             response += "        \"tags\": [";
-//             for (std::string tag : edge->tags)
-//             {
-//                 response += "\"" + tag + "\", ";
-//             }
-//             if (edge->tags.size() > 0)
-//             {
-//                 response.pop_back();
-//                 response.pop_back();
-//             }
-//             response += "]\n      },\n";
-//             // response += "        [" + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].first) + "," + std::to_string(edge->geo_locs[edge->geo_locs.size() - 1].second) + "], \n";
-//         }
-
-//         response.pop_back();
-//         response.pop_back();
-
-//         response += "\n    ]\n";
-//         response += "}";
-
-//         return std::shared_ptr<string_response>(new string_response(response, 200, "application/json"));
-//     }
-// };
-
 class index_resource : public http_resource
 {
 public:
     const std::shared_ptr<http_response> render_GET(const http_request &req)
     {
-        std::cout << "Get request\n";
         return std::shared_ptr<file_response>(new file_response("../web/main.html", 200, "text/html"));
     }
 };

@@ -8,14 +8,11 @@ Problem::Problem(std::string file_name) {
 
 void Problem::fillShortestPath(std::string filename)
 {
-    printf("%ld\n", graph.v_nodes.size());
     std::ofstream outputFile("/home/hagedoorn/Documents/TUD/Code/AOPcpp/input/" + filename + "_sp.txt");
     shortestPath.resize(graph.v_nodes.size());
 
     for (int source = 0; source < graph.v_nodes.size(); source++)
     {   
-        if (source % 100 == 0)
-            printf("%d / %ld\n", source, graph.v_nodes.size());
         shortestPath[source].resize(graph.v_nodes.size());
         // The output array. dist[i] will hold the shortest
         // distance from src to i
@@ -37,17 +34,7 @@ void Problem::fillShortestPath(std::string filename)
 
             auto bestKnown = dist.find(currentNode);
             double bestKnownDist = bestKnown->second;
-
-            // auto bestKnownActual = actual_dist.find(currentNode);
-            // double bestKnownActual =
-
-            // int x;
-            // std::cin >> x;
-
-            // printf("%f, %f\n", distance, bestKnownDist);
-
-            // printf("%ld\n", bestKnown);
-
+            
             if (bestKnown == dist.end())
             {
                 dist.insert(std::make_pair(currentNode, distance));

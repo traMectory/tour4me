@@ -217,7 +217,6 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
         if (insert(solution, C_max - solution->length, minProfit, maxDepth))
         {
-            printf("  improved! profit: %f, length: %f\n", P->getQuality(solution->profit, solution->area), solution->length);
             noImprove = 0;
             A = 0;
             R = 1;
@@ -265,7 +264,6 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
             }
         }
     }
-    printf("maxNoImprove: %d\n", noImprove);
 }
 
 SolveStatus ILS::solve(Problem *problem)
@@ -284,7 +282,6 @@ SolveStatus ILS::solve(Problem *problem)
     if (status == SolveStatus::Unsolved)
         return status;
     
-    printf("Calculated Greedy solution\n");
 
     TempSol solution;
 
@@ -320,13 +317,10 @@ SolveStatus ILS::solve(Problem *problem)
         i++;
     }
 
-    printf("area %f - %f\n", solution.area, P->getArea(P->path));
 
-    printf("Before; profit: %f, length: %f\n", solution.profit, solution.length);
 
     improve(&solution, maxNoImprove, maxDepth);
 
-    printf("After; Profit: %f, length: %f\n", solution.profit, solution.length);
 
     P->path.clear();
 

@@ -17,7 +17,6 @@ SolveStatus Jogger::solve(Problem *P)
     //  bestPath;
     double bestQuality = -1;
 
-    printf("size of ring: %ld\n", s_ring.size());
 
     int visited[P->graph.v_edges.size()];
     int visitedIndex = 0;
@@ -26,7 +25,6 @@ SolveStatus Jogger::solve(Problem *P)
 
     for (auto &pair : s_ring)
     {
-        printf("    step: %d\n", index);
         index++;
         int point_a = pair.first;
         Path path_s_a = pair.second;
@@ -53,7 +51,6 @@ SolveStatus Jogger::solve(Problem *P)
             if (contained)
             {
                 visitedIndex++;
-                // printf("    vstep: %d\n", visitedIndex);
                 double profit = 0;
                 double area1 = 0;
                 double area2 = 0;
@@ -100,7 +97,6 @@ SolveStatus Jogger::solve(Problem *P)
                 double quality = P->getQuality(profit, P->getArea(f_path));
                 // double ar = P->getArea(f_path);
                 // f_path.reverse();
-                // std::cout << ar << "\n";
 
                 if (quality  > bestQuality)
                 {

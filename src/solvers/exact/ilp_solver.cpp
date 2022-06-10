@@ -51,18 +51,7 @@ Graph* reduceGraph(Graph* G, int source, int number_of_vertices)
 
         reducedGraph->g_id_node.insert(std::make_pair(G->v_nodes[currentNode].id, c_nodes));
 
-
         c_nodes++;
-
-        // auto bestKnownActual = actual_dist.find(currentNode);
-        // double bestKnownActual = 
-
-        // int x;
-        // std::cin >> x;
-
-        // printf("%f, %f\n", distance, bestKnownDist);
-
-        // printf("%ld\n", bestKnown);
 
         if (bestKnown == dist.end()) {
             dist.insert(std::make_pair(currentNode, distance));
@@ -108,29 +97,6 @@ Graph* reduceGraph(Graph* G, int source, int number_of_vertices)
             c_edges++;
         }
     }
-
-    // for (Node n : G->v_nodes) {
-    //     int current = n.id;
-    //     std::vector<int> path;
-    //     path.insert(path.begin(.id), current);
-
-    //     double length = 0;
-
-    //     while (current != source) {
-    //         if (!G->edgeExists(current, parent[current]))
-    //             // printf("Edge does not exist: %d, %d\n", current, parent[current]);
-    //             break;
-    //         length += G->getEdge(current, parent[current])->cost;
-    //         current = parent[current];
-    //         path.insert(path.begin(), current);
-    //     }
-
-    //     if (ldis <= length && length <= udis)
-    //         output.insert(std::make_pair(n.id, path));
-    // }
-
-    printf("Reduced graph with %ld nodes and %ld edges\n", reducedGraph->v_nodes.size(), reducedGraph->v_edges.size());
-
     
     return reducedGraph;
 }
@@ -253,7 +219,6 @@ Graph* simplifyGraph(Graph* G, int start) {
 
 SolveStatus ILP::solve(Problem *P)
 {
-    printf("Starting creating model\n");
     try
     {
         
@@ -283,12 +248,10 @@ SolveStatus ILP::solve(Problem *P)
         int m = rG->v_edges.size();
         int n = rG->v_nodes.size();
 
-        printf("Number of Vertices: %d\n", n);
 
         // Create variable
         std::vector<std::vector<GRBVar>> b(n);
         std::vector<std::vector<GRBVar>> h(n);
-        printf("Number of Vertices: %d\n", n);
 
         for (int i = 0; i < n; i++)
         {
@@ -305,7 +268,6 @@ SolveStatus ILP::solve(Problem *P)
             }
         }
 
-        printf(" - Added edge count variables\n");
 
         // std::vector<GRBVar> b_ij(m);
         // std::vector<GRBVar> n_ij(m);
@@ -339,7 +301,6 @@ SolveStatus ILP::solve(Problem *P)
                 p[k][i] = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, "p_" + std::to_string(k) + "-" + std::to_string(i));
             }
         }
-        printf(" - Added vertex location variables\n");
 
         std::vector<std::vector<std::vector<GRBVar>>> e(L-1);
         // std::vector<std::vector<std::vector<GRBVar>>> e_t(L-1);
@@ -361,7 +322,6 @@ SolveStatus ILP::solve(Problem *P)
                 }
             }
         }
-        printf(" - Added edge location variables\n");
 
         // Start is always in index 0
 
@@ -371,7 +331,6 @@ SolveStatus ILP::solve(Problem *P)
 
         // Creating objective of AOP
 
-        // printf("Model has %d variables\n", model.getVars().size());
         GRBLinExpr objective = 0;
         for (int i = 0; i < m; i++)
         {
@@ -388,8 +347,6 @@ SolveStatus ILP::solve(Problem *P)
         for (int i = 0; i < m; i++)
         {
             Edge *edge = rG->v_edges[i];
-            // std::cout << (l.lat + r.lat) * (l.lon - r.lon) << "\n";
-            // std::cout << (r.lat + l.lat) * (r.lon - l.lon) << "\n";
             for (int k = 0; k < L - 1; k++)
             {
                 objective += e[k][edge->s][edge->t] * edge->shoelace_forward / (M_PI * P->target_distance * P->target_distance) * P->coveredAreaImportance;
@@ -399,7 +356,6 @@ SolveStatus ILP::solve(Problem *P)
 
         model.setObjective(objective, GRB_MAXIMIZE);
 
-        printf(" - Set objective\n");
 
         // Add constraints that links b_ij and n_ij
         for (int i = 0; i < n; i++)
@@ -415,7 +371,6 @@ SolveStatus ILP::solve(Problem *P)
                 }
             }
         }
-        printf(" - Added edge variable constraints\n");
 
         // Add constraint that the budget is not exceeded
         GRBLinExpr budget_constr = 0;
@@ -428,7 +383,6 @@ SolveStatus ILP::solve(Problem *P)
             budget_constr += h[l][r] * edge->cost;
         }
         model.addConstr(budget_constr <= B*2, "budget_constraint");
-        printf(" - Added budget constraint\n");
 
         // Add constraint that every node has an even number of incoming and outgoing edges
 
@@ -442,7 +396,6 @@ SolveStatus ILP::solve(Problem *P)
             }
             model.addConstr(v_one_loc <= 1, "v_one_loc_pos-" + std::to_string(k));
         }
-        printf(" - Added vertex location constraint\n");
 
         for (int k = 0; k < L - 1; k++)
         {
@@ -456,7 +409,6 @@ SolveStatus ILP::solve(Problem *P)
             }
             model.addConstr(e_one_loc == 1, "e_one_loc_pos-" + std::to_string(k));
         }
-        printf(" - Added edge location constraint\n");
 
         for (int i = 0; i < n; i++)
         {
@@ -476,7 +428,6 @@ SolveStatus ILP::solve(Problem *P)
             }
         }
 
-        printf(" - Linked edge location to edge variables");
 
 
         for (int i = 0; i < n; i++)
@@ -494,7 +445,6 @@ SolveStatus ILP::solve(Problem *P)
                 }
             }
         }
-        printf(" - Linked edge locations to vertex locations");
 
 
 
@@ -515,9 +465,7 @@ SolveStatus ILP::solve(Problem *P)
                     }
                 }
             }
-            // printf("e[%d]: %d\n", k, sum);
         }
-        printf("\nlength: %f\n", length);
 
         if (model.get(GRB_IntAttr_SolCount) == 0) {
             return SolveStatus::Unsolved;
@@ -530,17 +478,12 @@ SolveStatus ILP::solve(Problem *P)
         for (int k = 0; k < L; k++) {
             for (int i = 0; i < n; i++) {
                 if (p[k][i].get(GRB_DoubleAttr_X) > 0 && i != prev) {
-                    // printf("%d\n", i);
 
                     if (prev != -1) {
                         P->path.push_back(rG->v_nodes[i].g_id);
                         if (!rG->edgeExists(prev, i)) {
 
-                            // printf("%f\n", e[k][i][prev].get(GRB_DoubleAttr_X));
-                            // printf("%f\n", e[k][prev][i].get(GRB_DoubleAttr_X));
 
-                            std::cout<<i << ", " << prev <<", noooooooooooooooooo\n";
-                            // std::cout<< h[prev][i].get(GRB_DoubleAttr_X)  <<", noooooooooooooooooo\n";
                         }
                     }
 
@@ -563,13 +506,10 @@ SolveStatus ILP::solve(Problem *P)
     }
     catch (GRBException e)
     {
-        std::cout << "Error code = " << e.getErrorCode() << std::endl;
-        std::cout << e.getMessage() << std::endl;
         return SolveStatus::Unsolved;
     }
     catch (...)
     {
-        std::cout << "Exception during optimization" << std::endl;
         return SolveStatus::Unsolved;
     }
 }
