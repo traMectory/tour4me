@@ -154,7 +154,7 @@ public:
         problem.metadata.push_back("Initialization time (ms): " + std::to_string(init_time_int.count()));
         problem.metadata.push_back("Algorithm computation time (ms): " + std::to_string(algo_time_int.count()));
         problem.metadata.push_back("Profit: " + std::to_string(problem.getProfit(problem.path)) + " (theoretical upper bound: " + std::to_string(problem.target_distance) + ")");
-        problem.metadata.push_back("Area: " + std::to_string(problem.getArea(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance * problem.target_distance) + ")");
+        problem.metadata.push_back("Area: " + std::to_string(std::abs(problem.getArea(problem.path))) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance * problem.target_distance) + ")");
         // problem.metadata.push_back("Quality: " + std::to_string(problem.getQuality(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
 
         switch (status)
