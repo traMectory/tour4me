@@ -279,16 +279,16 @@
 
                     algosRadio = document.getElementById("algoRadio");
 
-                    const algo = algos[0];
-                    var name = algo[0].toUpperCase() + algo.slice(1);
-                    algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + 0 + " id=\"" + algo + "\" autocomplete=\"off\" checked/>";
-                    algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
+                    // const algo = algos[0];
+                    // var name = algo[0].toUpperCase() + algo.slice(1);
+                    // algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + 0 + " id=\"" + algo + "\" autocomplete=\"off\" checked/>";
+                    // algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
 
 
-                    for (let index = 1; index < algos.length; index++) {
+                    for (let index = 0; index < algos.length; index++) {
                         const algo = algos[index];
                         var name = algo[0].toUpperCase() + algo.slice(1);
-                        algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + index + " id=\"" + algo + "\" autocomplete=\"off\" />";
+                        algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + index + " id=\"" + algo + "\" autocomplete=\"off\" " + (index == 1 ? "checked" : "") + "/>";
                         algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
 
                     }
