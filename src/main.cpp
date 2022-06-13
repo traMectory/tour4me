@@ -60,8 +60,18 @@ public:
         }
 
         mtx.lock();
-        problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
-        printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
+        try
+        {
+            problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
+            printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
+        }
+        catch(const std::exception& e)
+        {
+            mtx.unlock();
+            std::cout << "Something went wrong whilst loading the graph\n";
+            return std::shared_ptr<string_response>(new string_response("Something went wrong whilst loading the graph", 404, "text/plain"));
+        }
+        
         mtx.unlock();
 
         for (int i = 0; i < all_tags.size(); i++)
