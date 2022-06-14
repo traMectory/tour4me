@@ -161,12 +161,12 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
         double minProfit = P->getQuality(solution->profit, solution->area);
 
-        std::vector<int> copy_path(solution->sol.size());
+        // std::vector<int> copy_path(solution->sol.size());
 
-        for (int i = 0; i < solution->sol.size(); i++)
-        {
-            copy_path[i] = solution->sol[i];
-        }
+        // for (int i = 0; i < solution->sol.size(); i++)
+        // {
+        //     copy_path[i] = solution->sol[i];
+        // }
 
         if (A + R > size - 1)
         {
@@ -241,7 +241,7 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
             Edge *e = P->graph.getEdge(removed[removed.size() - 1], solution->sol[solution->cut_loc + R]);
 
-            if (solution->visitedEdges[e] == 0)
+            if (e != nullptr && solution->visitedEdges[e] == 0)
             {
                 solution->profit += e->profit * e->cost;
             }
@@ -258,10 +258,10 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
             
             
 
-            for (int i = 0; i < solution->sol.size(); i++)
-            {
-                assert(copy_path[i] == solution->sol[i]);
-            }
+            // for (int i = 0; i < solution->sol.size(); i++)
+            // {
+            //     assert(copy_path[i] == solution->sol[i]);
+            // }
         }
     }
 }
@@ -284,6 +284,7 @@ SolveStatus ILS::solve(Problem *problem)
     
 
     TempSol solution;
+
 
     solution.sol.resize(P->path.size());
     solution.length = 0;
@@ -317,10 +318,7 @@ SolveStatus ILS::solve(Problem *problem)
         i++;
     }
 
-
-
     improve(&solution, maxNoImprove, maxDepth);
-
 
     P->path.clear();
 

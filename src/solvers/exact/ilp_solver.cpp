@@ -344,13 +344,14 @@ SolveStatus ILP::solve(Problem *P)
             objective += edge->cost * edge->profit * b[l][r] / P->target_distance * P->edgeProfitImportance;
         }
 
+        double areaUpperbound = M_PI * (P->target_distance/(2*M_PI)) * (P->target_distance/(2*M_PI));
         for (int i = 0; i < m; i++)
         {
             Edge *edge = rG->v_edges[i];
             for (int k = 0; k < L - 1; k++)
             {
-                objective += e[k][edge->s][edge->t] * edge->shoelace_forward / (M_PI * P->target_distance * P->target_distance) * P->coveredAreaImportance;
-                objective += e[k][edge->t][edge->s] * edge->shoelace_backward / (M_PI * P->target_distance * P->target_distance) * P->coveredAreaImportance;
+                objective += e[k][edge->s][edge->t] * edge->shoelace_forward / areaUpperbound * P->coveredAreaImportance;
+                objective += e[k][edge->t][edge->s] * edge->shoelace_backward / areaUpperbound * P->coveredAreaImportance;
             }
         }
 
@@ -468,7 +469,7 @@ SolveStatus ILP::solve(Problem *P)
         }
 
         if (model.get(GRB_IntAttr_SolCount) == 0) {
-            return SolveStatus::Unsolved;
+            return SolveStatus::Timeout;
         }
 
 
@@ -506,10 +507,10 @@ SolveStatus ILP::solve(Problem *P)
     }
     catch (GRBException e)
     {
-        return SolveStatus::Unsolved;
+        return SolveStatus::Timeout;
     }
     catch (...)
     {
-        return SolveStatus::Unsolved;
+        return SolveStatus::Timeout;
     }
 }

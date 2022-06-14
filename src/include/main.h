@@ -46,5 +46,5 @@ struct Tag
     tagType type;
 };
 
-std::vector<Tag> all_tags{{"cycleway", highway},  {"unclassified", highway}, {"resedential", highway}, {"path", highway}, {"track", highway}, {"secondary", highway}, {"paved", surface}, {"cobblestone", surface}, {"gravel", surface}, {"unpaved", surface}, {"compacted", surface}, {"fine_gravel", surface}, {"rock", surface}, {"pebblestone", surface}};
+std::vector<Tag> all_tags{{"cycleway", highway},  {"unclassified", highway}, {"residential", highway}, {"path", highway}, {"track", highway}, {"secondary", highway}, {"paved", surface}, {"cobblestone", surface}, {"gravel", surface}, {"unpaved", surface}, {"compacted", surface}, {"fine_gravel", surface}, {"rock", surface}, {"pebblestone", surface}};
 std::vector<std::string> algorithms{"greedy", "jogger", "ILS", "ILP"};

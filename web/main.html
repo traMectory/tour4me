@@ -117,7 +117,7 @@
                     <div class="btn-group mr-2 tagsSurface pre-scrollable"
                         style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsSurface"></div>
                     <br>
-                    <h5>Running time:</h5>
+                    <h5>Running time (max 60s):</h5>
                     <div class="input-group">
                         <input type="text" class="form-control" value="2" aria-label="Running Time" id="runningTime">
                         <span class="input-group-text">seconds</span>
@@ -409,7 +409,7 @@
                 },
                 error: function (xhr, status) {
                     document.getElementById("overlay").style.display = "none";
-                    alert("Failed to load backbone!");
+                    alert("Failed to connect to server!");
                 }
             })
 
@@ -476,7 +476,11 @@
                 },
                 error: function (xhr, status) {
                     document.getElementById("overlay").style.display = "none";
-                    alert("Failed to calculate a route!");
+                    if (xhr.status == 504) {
+                        alert("Computation did not find a solution with the given time bound.");
+                    } else {
+                        alert("Failed to calculate a route!");
+                    }
                 }
             })
 

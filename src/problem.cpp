@@ -227,21 +227,33 @@ double Problem::getArea(Path path) {
     for (DirEdge dEdge : path.edges) {
         area += !dEdge.reversed ? dEdge.edge->shoelace_forward : dEdge.edge->shoelace_backward;
     }
-    return area;
+    return area/2;
 }
 
 double Problem::getArea(std::list<int> path) {
-    
 
     double area = 0.0;
 
+    int prev = -1;
+    for (int v : path) {
+        if (prev == -1) {
+            prev = v;
+            continue;
+        }
 
-    for (auto it = path.begin(), end = --path.end(); it != end; ++it) {
-        Edge* edge = graph.getEdge(*it, *(std::next(it)));
-        area += *it == edge->s ? edge->shoelace_forward : edge->shoelace_backward;
+        Edge* edge = graph.getEdge(prev, v);     
+
+        area += prev == edge->s ? edge->shoelace_forward : edge->shoelace_backward;
+
+        prev = v;
     }
 
-    return area;
+    if (prev != path.front()) {
+        Edge* edge = graph.getEdge(prev, path.front());   
+        area += prev == edge->s ? edge->shoelace_forward : edge->shoelace_backward;
+    }
+
+    return area/2;
 }
 
 double Problem::getLength(std::list<int> path) {

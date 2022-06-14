@@ -51,16 +51,18 @@ Edge* Graph::addEdge(int id, long int s_id, long int t_id, double cost)
     Node l = v_nodes[s];
     Node r = v_nodes[t];
 
-    Node c = Node(-1, -1, center_lat, center_lon);
-    double yl = getDistanceFromLatLon(l, Node(-1, -1, center_lat, l.lon)) * (l.lat < c.lat ? -1 : 1);
-    double xl = getDistanceFromLatLon(l, Node(-1, -1, l.lat, center_lon)) * (l.lon < c.lon ? -1 : 1);
+    Node c = Node(-1, -1, min_lat, min_lon);
+    double yl = getDistanceFromLatLon(l, Node(-1, -1, c.lat, l.lon)) * (l.lat < c.lat ? -1 : 1);
+    double xl = getDistanceFromLatLon(l, Node(-1, -1, l.lat, c.lon)) * (l.lon < c.lon ? -1 : 1);
 
-    double yr = getDistanceFromLatLon(r, Node(-1, -1, center_lat, r.lon)) * (r.lat < c.lat ? -1 : 1);
-    double xr = getDistanceFromLatLon(r, Node(-1, -1, r.lat, center_lon)) * (r.lon < c.lon ? -1 : 1);
+    double yr = getDistanceFromLatLon(r, Node(-1, -1, c.lat, r.lon)) * (r.lat < c.lat ? -1 : 1);
+    double xr = getDistanceFromLatLon(r, Node(-1, -1, r.lat, c.lon)) * (r.lon < c.lon ? -1 : 1);
 
     edge->shoelace_forward = (yl + yr) * (xl - xr);
     edge->shoelace_backward = (yr + yl) * (xr - xl);
-
+    // edge->shoelace_forward = (l.lat + r.lat) * (l.lon - r.lon);
+    // edge->shoelace_backward = (r.lat + l.lat) * (r.lon - l.lon);
+    assert(edge->shoelace_backward == - edge->shoelace_forward);
     addEdge(edge);
     return edge;
 }

@@ -8,6 +8,7 @@
 #include <iterator>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 #include <queue>
 #include <set>
