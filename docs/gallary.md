@@ -1,5 +1,5 @@
 ---
-title: Gallary
+title: Gallery
 layout: template
 filename: gallary
 --- 
