@@ -1,5 +1,5 @@
 ---
-title: Demo
+title: Demo Video
 layout: template
 filename: demo
 --- 
