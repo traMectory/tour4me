@@ -9,7 +9,7 @@ filename: gallary
 
 Greedy           |  ILP  
 :-------------------------:|:-------------------------:
-![](figs/work_25_greedy.png)  |  ![](figs//work_25_ilp_2000.png)
+![](figs/work_25_greedy.png)  |  ![](figs/ILP-60s-20k-negPaved.jpg)
 
 
 
