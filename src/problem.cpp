@@ -169,11 +169,11 @@ void Problem::calculateProfit(Graph* G) {
     for (Edge* edge : G->v_edges) {
         edge->profit = 0.0001;
         for (std::string tag: edge->tags) {
-            if (pref_tags.contains(tag) ) {
-                edge->profit += 1;
+            if (edge-> profit == 0.0001 && pref_tags.contains(tag) ) {
+                edge->profit = 1;
             }
             if (avoid_tags.contains(tag)) {
-                edge->profit -= 1;
+                edge->profit = -1;
             }
         }
     }
