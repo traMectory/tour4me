@@ -161,17 +161,18 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
         double minProfit = P->getQuality(solution->profit, solution->area);
 
-        // std::vector<int> copy_path(solution->sol.size());
+        std::vector<int> copy_path(solution->sol.size());
 
-        // for (int i = 0; i < solution->sol.size(); i++)
-        // {
-        //     copy_path[i] = solution->sol[i];
-        // }
+        for (int i = 0; i < solution->sol.size(); i++)
+        {
+            copy_path[i] = solution->sol[i];
+        }
 
         if (A + R > size - 1)
         {
 
             int ar = solution->sol[size - 1];
+            R = solution->sol.size() - solution->cut_loc - 1;
             for (int i = A; i < size - 1; i++)
             {
                 removed.push_back(solution->sol[i]);
@@ -189,8 +190,7 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
 
             solution->sol.erase(solution->sol.begin() + A + 1, solution->sol.end() - 1);
             assert(solution->sol[A + 1] == ar);
-
-            A = 1;
+            A = 0;
         }
         else
         {
@@ -240,8 +240,16 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
             }
 
             Edge *e = P->graph.getEdge(removed[removed.size() - 1], solution->sol[solution->cut_loc + R]);
+            for (int i = 0; i < solution->sol.size(); i++)
+            {
+                assert(copy_path[i] == solution->sol[i]);
+            }
 
-            if (e != nullptr && solution->visitedEdges[e] == 0)
+            if (e == nullptr) {
+                printf("test\n");
+            }
+
+            if (solution->visitedEdges[e] == 0)
             {
                 solution->profit += e->profit * e->cost;
             }
@@ -256,12 +264,6 @@ void ILS::improve(TempSol *solution, int maxNoImprove, int maxDepth)
             if (R > maxDepth * 2)
                 R = 1;
             
-            
-
-            // for (int i = 0; i < solution->sol.size(); i++)
-            // {
-            //     assert(copy_path[i] == solution->sol[i]);
-            // }
         }
     }
 }
@@ -270,7 +272,7 @@ SolveStatus ILS::solve(Problem *problem)
 {
     P = problem;
 
-    C_max = P->target_distance;
+    // C_max = P->target_distance;
     C_min = 0;
 
     int maxNoImprove = 100;
@@ -313,10 +315,13 @@ SolveStatus ILS::solve(Problem *problem)
 
             solution.length += e->cost;
             solution.visitedEdges[e]++;
-            // solution.area += e->
         }
         i++;
     }
+
+    double qBefore = P->getQuality(solution.profit, solution.area);
+
+    C_max = solution.length;
 
     improve(&solution, maxNoImprove, maxDepth);
 
@@ -326,13 +331,17 @@ SolveStatus ILS::solve(Problem *problem)
     {
         P->path.push_back(v_sol);
     }
+    double qAfter = P->getQuality(solution.profit, solution.area);
 
-    if (C_min <= solution.length && solution.length <= C_max + C_max/10)
-    {
-        return SolveStatus::Feasible;
-    }
-    else
-    {
-        return SolveStatus::Unsolved;
-    }
+    P->metadata.push_back("Quality before: " + std::to_string(qBefore) + ", quality after: " + std::to_string(qAfter));
+
+    return SolveStatus::Feasible;
+    // if (C_min <= solution.length && solution.length <= C_max + C_max/10)
+    // {
+    //     return SolveStatus::Feasible;
+    // }
+    // else
+    // {
+    //     return SolveStatus::Unsolved;
+    // }
 }

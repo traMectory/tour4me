@@ -157,6 +157,7 @@ public:
         problem.metadata.push_back("Area: " + std::to_string(std::abs(problem.getArea(problem.path))) + " (theoretical upper bound: " + std::to_string(M_PI * (problem.target_distance/(2*M_PI)) * (problem.target_distance/(2*M_PI))) + ")");
         // problem.metadata.push_back("Quality: " + std::to_string(problem.getQuality(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
 
+
         switch (status)
         {
         case SolveStatus::Optimal:

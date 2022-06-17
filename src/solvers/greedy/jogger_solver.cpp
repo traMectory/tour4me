@@ -52,9 +52,7 @@ SolveStatus Jogger::solve(Problem *P)
             {
                 visitedIndex++;
                 double profit = 0;
-                double area1 = 0;
-                double area2 = 0;
-                double area3 = 0;
+                double area = 0;
                 std::list<int> f_path;
 
                 for (DirEdge v : path_s_a.edges)
@@ -64,8 +62,9 @@ SolveStatus Jogger::solve(Problem *P)
                         profit += v.edge->cost * v.edge->profit;
                         visited[v.edge->id] = visitedIndex;
                     }
-                    area1 += !v.reversed ? v.edge->shoelace_forward : v.edge->shoelace_backward;
-                    f_path.push_back(!v.reversed ? v.edge->t : v.edge->s);
+                    area += !v.reversed ? v.edge->shoelace_forward : v.edge->shoelace_backward;
+
+                    f_path.push_back(v.reversed ? v.edge->t : v.edge->s);
                 }
 
                 for (DirEdge v : t_pair.second.edges)
@@ -75,8 +74,9 @@ SolveStatus Jogger::solve(Problem *P)
                         profit += v.edge->cost * v.edge->profit;
                         visited[v.edge->id] = visitedIndex;
                     }
-                    area2 += !v.reversed ? v.edge->shoelace_forward : v.edge->shoelace_backward;
-                    f_path.push_back(!v.reversed ? v.edge->t : v.edge->s);
+                    area += !v.reversed ? v.edge->shoelace_forward : v.edge->shoelace_backward;
+                    assert(f_path.back() == !v.reversed ? v.edge->t : v.edge->s);
+                    f_path.push_back(v.reversed ? v.edge->t : v.edge->s);
                 }
                 
                 for (auto it = path_s_b.edges.rbegin(); it != path_s_b.edges.rend(); ++it)
@@ -89,12 +89,16 @@ SolveStatus Jogger::solve(Problem *P)
                         visited[v.edge->id] = visitedIndex;
                     }
                     // v.reversed = !v.reversed;
-                    area3 += v.reversed ? v.edge->shoelace_forward : v.edge->shoelace_backward;
-                    f_path.push_back(v.reversed ? v.edge->t : v.edge->s);
+                    area += v.reversed ? v.edge->shoelace_forward : v.edge->shoelace_backward;
+                    assert(f_path.back() == v.reversed ? v.edge->t : v.edge->s);
+                    f_path.push_back(!v.reversed ? v.edge->t : v.edge->s);
                 }
 
+                assert(P->graph.getEdge(f_path.back(), f_path.front()) != nullptr);
 
-                double quality = P->getQuality(profit, P->getArea(f_path));
+                f_path.push_back(f_path.front());
+
+                double quality = P->getQuality(profit, area);
                 // double ar = P->getArea(f_path);
                 // f_path.reverse();
 
