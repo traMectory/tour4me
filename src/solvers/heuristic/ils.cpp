@@ -333,7 +333,7 @@ SolveStatus ILS::solve(Problem *problem)
     }
     double qAfter = P->getQuality(solution.profit, solution.area);
 
-    P->metadata.push_back("Quality before: " + std::to_string(qBefore) + ", quality after: " + std::to_string(qAfter));
+    P->metadata.push_back("Quality improvement: " + std::to_string(1000*(qAfter - qBefore)) + " (This value has no unit and is only relative to problems with the same settings)");
 
     return SolveStatus::Feasible;
     // if (C_min <= solution.length && solution.length <= C_max + C_max/10)
