@@ -38,6 +38,8 @@
     <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
         integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
         crossorigin=""></script>
+
+
     <!-- head definitions go here -->
 </head>
 
@@ -57,10 +59,12 @@
     </div>
 
 
-    <div class="btn-grp" style="position:fixed; z-index: 1; top: 20px; right:20px;">
-        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#infoModal">Show Route
-            Information</button>
-        <button class="btn btn-success" onclick="toGPX()">Download to GPX</button>
+    <div class="card" style="width: 400px; position:fixed; z-index: 1; top: 20px; right:20px;">
+        <div class="card-body" id="route_overview">
+            <h5 class="card-title">Computed Routes</h5>
+
+        </div>
+    </div>
     </div>
 
 
@@ -103,9 +107,11 @@
                 <div class="modal-body">
                     <h5>Underlying map:</h5>
                     <div class="btn-group" style="display: block; ">
-                        <input type="radio" class="btn-check" name="mapType" value="b" id="backbone" autocomplete="off"  />
+                        <input type="radio" class="btn-check" name="mapType" value="b" id="backbone"
+                            autocomplete="off" />
                         <label class="btn btn-outline-success" for="backbone">Backbone</label>
-                        <input type="radio" class="btn-check" name="mapType" value="o" id="osm" autocomplete="off" checked/>
+                        <input type="radio" class="btn-check" name="mapType" value="o" id="osm" autocomplete="off"
+                            checked />
                         <label class="btn btn-outline-success" for="osm">OSM</label>
                     </div>
                     <br>
@@ -183,15 +189,12 @@
     <script>
         var marker;
         var map;
-        var line;
-        var path = [];
 
         var backbone = [];
 
         var outer_box;
         var inner_box;
 
-        var metadata = [];
 
         var tags;
         var algos;
@@ -204,7 +207,13 @@
         const abs_min_lon = 5.5;
         const abs_max_lon = 9.25;
         const lon_gran = 0.75 / 2
-        const lon_pad = 0.75 / 4
+        const lon_pad = 0.75 / 4;
+
+        const colors = ["red", "green", "blue", "maroon", "purple", "lime", "navy"]
+
+        var route_counter = 0;
+
+        var stored_routes = [];
 
 
         var onClick = function (e) {
@@ -433,7 +442,7 @@
             });
 
             var algorithm = document.querySelector('input[name="algorithm"]:checked').value;
-            
+
             var mapType = document.querySelector('input[name="mapType"]:checked').value;
             console.log(mapType);
 
@@ -452,25 +461,53 @@
                 contentType: "application/json",
                 dataType: 'json',
                 success: function (result) {
-                    if (line) {
-                        line.remove(map);
-                    }
-                    line = L.polyline(result["path"], { color: 'blue', weight: 5 }).addTo(map);
+                    var line = L.polyline(result["path"], { color: colors[route_counter % colors.length], weight: 5 }).addTo(map);
 
-                    path = result["path"];
+                    var path = result["path"];
 
                     document.getElementById("overlay").style.display = "none";
                     map.fitBounds(line.getBounds());
 
-                    metadata = result["meta"];
+                    var metadata = result["meta"];
 
-                    m_body = document.getElementById("metadata-body");
+                    // m_body = document.getElementById("metadata-body");
 
-                    m_body.innerHTML = ""
-                    metadata.forEach(element => {
-                        m_body.innerHTML += "<p>" + element + "</p>\n";
-                    });
+                    // m_body.innerHTML = ""
+                    // metadata.forEach(element => {
+                    //     m_body.innerHTML += "<p>" + element + "</p>\n";
+                    // });
 
+                    stored_routes.push({ 'route_id': route_counter, 'line': line, 'path': path, 'metadata': metadata })
+
+                    html_routes = document.getElementById("route_overview");
+
+                    html_routes.innerHTML += "     <div class=\"input-group mb-3\" id=\"d" + route_counter + "\">"
+                        + "        <div class=\"input-group-prepend\">"
+                        + "            <button class=\"btn btn-warning\" route_id=\"" + route_counter + "\" onclick=\"toggleRoute(this)\" data-toggle=\"tooltip\" data-placement=\"bottom\""
+                        + "                title=\"Toggle Selected Route\">T</button>"
+                        + "            <button class=\"btn btn-secondary\" route_id=\"" + route_counter + "\" data-bs-toggle=\"modal\" data-bs-target=\"#infoModal\" onclick=\"showInfo(this)\" data-toggle=\"tooltip\" data-placement=\"bottom\""
+                        + "                title=\"Display Route Information\">I</button>"
+                        + "        </div>"
+                        + ""
+                        + "        <input type=\"text\" class=\"form-control\" id=\"r" + route_counter + "\" style=\"color:" + colors[route_counter % colors.length] + "\" value=\"Route " + route_counter + "\">"
+                        + ""
+                        + "        <div class=\"input-group-append\">"
+                        + "            <button class=\"btn btn-success\" route_id=\"" + route_counter + "\" onclick=\"toGPX(this)\" data-toggle=\"tooltip\" data-placement=\"bottom\""
+                        + "                title=\"Export Route to GPX\">E</button>"
+                        + "            <button class=\"btn btn-danger\" route_id=\"" + route_counter + "\" onclick=\"deleteRoute(this)\"  data-toggle=\"tooltip\" data-placement=\"bottom\""
+                        + "                title=\"Delete Route\">D</button>"
+                        + "        </div>"
+                        + "    </div>"
+
+                    $('[data-toggle="tooltip"]').tooltip({
+                        trigger: 'hover'
+                    })
+
+                    $('[data-toggle="tooltip"]').on('click', function () {
+                        $(this).tooltip('hide')
+                    })
+
+                    route_counter += 1;
 
 
                 },
@@ -486,8 +523,60 @@
 
         }
 
-        function toGPX() {
-            file_name = "temp"
+        function findRoute(route_id) {
+            var route_obj;
+            for (let index = 0; index < stored_routes.length; index++) {
+                const element = stored_routes[index];
+
+                if (element["route_id"] == route_id) {
+                    return element;
+                }
+            }
+        }
+
+        function toggleRoute(route) {
+            route_id = route.attributes["route_id"].value;
+
+            var route_obj = findRoute(route_id);
+
+            if ($(route).hasClass("off")) {
+                route_obj["line"].addTo(map);
+
+                $(route).removeClass("off");
+
+            } else {
+
+                route_obj["line"].remove(map);
+                $(route).addClass("off");
+
+            }
+        }
+
+        function showInfo(route) {
+            route_id = route.attributes["route_id"].value;
+
+            var route_obj = findRoute(route_id);
+
+            m_body = document.getElementById("metadata-body");
+
+            file_name = document.getElementById("r" + route_id).value;
+            m_body.innerHTML = "<h4>" + file_name + "</h4>"
+            route_obj["metadata"].forEach(element => {
+                m_body.innerHTML += "<p>" + element + "</p>\n";
+            });
+        }
+
+        function toGPX(route) {
+
+            route_id = route.attributes["route_id"].value;
+
+            var route_obj = findRoute(route_id);
+
+            var path = route_obj["path"];
+
+
+
+            file_name = document.getElementById("r" + route_id).value;
             xml = "<?xml version='1.0' encoding='UTF-8'?>\n<gpx version=\"1.1\" creator=\"JeBoi\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n";
             xml += "  <metadata>\n    <name>" + file_name + "</name>\n  </metadata>\n  <trk>\n    <name>" + file_name + "</name>\n";
             xml += "    <trkseg>\n";
@@ -506,6 +595,25 @@
             link.href = url;
             document.body.appendChild(link);
             link.click();
+        }
+
+        function deleteRoute(route) {
+            route_id = route.attributes["route_id"].value;
+
+            var element = document.getElementById('d' + route_id); // will return element
+            element.parentNode.removeChild(element);
+
+
+            for (let index = 0; index < stored_routes.length; index++) {
+                const element = stored_routes[index];
+
+                if (element["route_id"] == route_id) {
+                    element["line"].remove(map);
+                    stored_routes.splice(index, 1);
+                    break;
+                }
+            }
+
         }
 
     </script>
