@@ -34,7 +34,7 @@ public:
 
         runningTime = std::stod(req.get_arg("rt"));
 
-        runningTime = runningTime < 60 ? runningTime : 60;
+        runningTime = runningTime < 5*60 ? runningTime : 5*60;
 
         edgeProfitImportance = std::stod(req.get_arg("ep"));
         coveredAreaImportance = std::stod(req.get_arg("ca"));
@@ -141,8 +141,26 @@ public:
         }
         case 3:
         {
+            ilp_mtx.lock();
+
+            if (ilp_counter >= 4) {
+                ilp_mtx.unlock();
+                return std::shared_ptr<string_response>(new string_response("There are to many requests to handle yours now, please try again later!", 503, "application/json"));
+            }
+
+            ilp_counter ++; 
+
+            ilp_mtx.unlock();
+
             ILP solver;
             status = solver.solve(&problem);
+
+            ilp_mtx.lock();
+
+            ilp_counter --;
+
+            ilp_mtx.unlock();
+
             break;
         }
         }

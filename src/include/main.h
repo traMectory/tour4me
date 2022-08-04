@@ -19,6 +19,7 @@
 std::string algoType;
 
 std::mutex mtx;
+std::mutex ilp_mtx;
 
 double abs_min_lat = 50;
 double abs_max_lat = 52;
@@ -29,6 +30,8 @@ double abs_min_lon = 5.5;
 double abs_max_lon = 9.25;
 double lon_gran = 0.75 / 2;
 double lon_pad = 0.75 / 4;
+
+int ilp_counter;
 
 bool gpx = false;
 bool deploy = false;

@@ -9,15 +9,15 @@ void parseOptions(int argc, char* argv[]) {
 
     options.add_options()
         ("h, help", "Display help message")
-        ("d, deploy", "Deploy the server")
+        ("d, deploy", "Deploy the webserver on port 80 (default deployment on 8080)")
         ("t, test", "Test an example instance");
         // ("t", "tmp_dictionary", cxxopts::value<std::string>()->default_value("D:/GIT/C++/geowordle_core_cmake"))
 
     auto result = options.parse(argc, argv);
 
     if (result.count("help"))
-    {
-        printUsage();
+    {      
+        std::cout << options.help() << std::endl;
         exit(0);
     }
 

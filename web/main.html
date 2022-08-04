@@ -123,9 +123,9 @@
                     <div class="btn-group mr-2 tagsSurface pre-scrollable"
                         style="display: block; overflow-x: auto; white-space: nowrap;" id="tagButtonsSurface"></div>
                     <br>
-                    <h5>Running time (max 60s):</h5>
+                    <h5>Running time (max 300s):</h5>
                     <div class="input-group">
-                        <input type="text" class="form-control" value="2" aria-label="Running Time" id="runningTime">
+                        <input type="text" class="form-control" value="30" aria-label="Running Time" id="runningTime">
                         <span class="input-group-text">seconds</span>
                     </div>
                     <br>
@@ -513,8 +513,11 @@
                 },
                 error: function (xhr, status) {
                     document.getElementById("overlay").style.display = "none";
+
                     if (xhr.status == 504) {
-                        alert("Computation did not find a solution with the given time bound.");
+                        alert("Computation did not find a solution with the given time bound, please increase the running time (settings) and try again.");
+                    } else if (xhr.status == 503) {
+                        alert("There are to many requests to handle yours right now, please try again later!");
                     } else {
                         alert("Failed to calculate a route!");
                     }
