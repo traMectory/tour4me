@@ -37,7 +37,7 @@ public:
     
 
     void addEdge(Edge* edge);
-    Edge* addEdge(int id, long int s_id, long int t_id, double length);
+    Edge* addEdge(int id, int s_id, int t_id, double length);
 
     Edge* getEdge(int s_id, int t_id);
     bool edgeExists(int s_id, int t_id);

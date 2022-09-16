@@ -234,6 +234,7 @@ SolveStatus ILP::solve(Problem *P)
 
         // Create an environment
         GRBEnv env = GRBEnv(true);
+        // env.set(GRB_IntParam_OutputFlag, 0); 
         env.start();
 
         int B = P->target_distance;

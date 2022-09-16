@@ -278,13 +278,6 @@ SolveStatus ILS::solve(Problem *problem)
     int maxNoImprove = 100;
     int maxDepth = 5;
 
-    Jogger jogSolver;
-
-    SolveStatus status = jogSolver.solve(P);
-    if (status == SolveStatus::Unsolved)
-        return status;
-    
-
     TempSol solution;
 
 

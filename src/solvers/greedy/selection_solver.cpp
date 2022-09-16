@@ -28,7 +28,7 @@ SolveStatus Selection::solve(Problem *P)
                 continue;
             }
 
-            double prof = (!visited[e->id] ? e->profit * e->cost : (P->target_distance - dis) * 0.0000000000000001);
+            double prof = (!visited[e->id] ? e->profit * e->cost : bestProfit + 0.0000000000000001);
 
             if (prof > bestProfit)
             {

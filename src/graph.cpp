@@ -35,12 +35,10 @@ void Graph::addEdge(Edge *edge)
     v_edges.push_back(edge);
 }
 
-Edge* Graph::addEdge(int id, long int s_id, long int t_id, double cost)
+Edge *Graph::addEdge(int id, int s, int t, double cost)
 {
-    int s = getNode(s_id);
-    int t = getNode(t_id);
-
-    if (s > t) {
+    if (s > t)
+    {
         int temp = s;
         s = t;
         t = temp;
@@ -62,7 +60,7 @@ Edge* Graph::addEdge(int id, long int s_id, long int t_id, double cost)
     edge->shoelace_backward = (yr + yl) * (xr - xl);
     // edge->shoelace_forward = (l.lat + r.lat) * (l.lon - r.lon);
     // edge->shoelace_backward = (r.lat + l.lat) * (r.lon - l.lon);
-    assert(edge->shoelace_backward == - edge->shoelace_forward);
+    assert(edge->shoelace_backward == -edge->shoelace_forward);
     addEdge(edge);
     return edge;
 }
@@ -126,7 +124,17 @@ Graph::Graph(std::string file_name)
             long int w_id = std::stol(next_word(&str, ' '));
             double cost = std::stod(next_word(&str, ' '));
 
-            Edge* edge = addEdge(c_edges, v_id, w_id, cost);
+            int s_id = getNode(v_id);
+            int t_id = getNode(w_id);
+
+            if (edgeExists(s_id, t_id))
+            {
+                std::getline(file, str);
+                std::getline(file, str);
+                continue;
+            }
+
+            Edge *edge = addEdge(c_edges, s_id, t_id, cost);
             c_edges++;
 
             std::getline(file, str);
@@ -157,10 +165,10 @@ Graph::Graph(std::string file_name)
             }
         }
     }
-    if (c_nodes != n_nodes)
-        throw std::runtime_error("Error: number of nodes (" + std::to_string(c_nodes) + ") does not match the file preamble (" + std::to_string(n_nodes) + ")");
-    if (c_edges != n_edges)
-        throw std::runtime_error("Error: number of edges (" + std::to_string(c_edges) + ") does not match the file preamble (" + std::to_string(n_edges) + ")");
+    // if (c_nodes != n_nodes)
+    //     throw std::runtime_error("Error: number of nodes (" + std::to_string(c_nodes) + ") does not match the file preamble (" + std::to_string(n_nodes) + ")");
+    // if (c_edges != n_edges)
+    //     throw std::runtime_error("Error: number of edges (" + std::to_string(c_edges) + ") does not match the file preamble (" + std::to_string(n_edges) + ")");
 }
 
 Edge *Graph::getEdge(int s_id, int t_id)
@@ -210,8 +218,8 @@ std::list<std::pair<int, Path>> ring(Graph *G, int source, double ldis, double u
     double dist[G->v_nodes.size()];
 
     std::fill_n(dist, G->v_nodes.size(), 2147483647);
-
-    double actual_dist[G->v_nodes.size()];
+    
+    double act_dist[G->v_nodes.size()];
 
     std::priority_queue<pi, std::vector<pi>, std::greater<pi>> queue;
 
@@ -226,7 +234,7 @@ std::list<std::pair<int, Path>> ring(Graph *G, int source, double ldis, double u
 
     // Distance of source vertex from itself is always 0
     dist[source] = 0.0;
-    actual_dist[source] = 0.0;
+    act_dist[source] = 0.0;
 
     queue.push(std::make_pair(0.0, std::make_pair(source, 0.0)));
 
@@ -241,12 +249,16 @@ std::list<std::pair<int, Path>> ring(Graph *G, int source, double ldis, double u
         int currentNode = current.second.first;
         double actual = current.second.second;
 
+        if (actual > udis) {
+            continue;
+        }
+
         double bestKnownDist = dist[currentNode];
 
         if (bestKnownDist == 2147483647)
         {
             dist[currentNode] = distance;
-            actual_dist[currentNode] = actual;
+            act_dist[currentNode] = actual;
             bestKnownDist = distance;
         }
 
@@ -260,14 +272,12 @@ std::list<std::pair<int, Path>> ring(Graph *G, int source, double ldis, double u
             double newDistance = bestKnownDist + (edge->cost / (edge->profit + 0.1));
             double newActual = actual + edge->cost;
 
-            if (newActual > udis)
-                continue;
 
             if (newDistance < dist[neighborId])
             {
                 queue.push(std::make_pair(newDistance, std::make_pair(neighborId, newActual)));
                 dist[neighborId] = newDistance;
-                actual_dist[neighborId] = newActual;
+                act_dist[neighborId] = newActual;
                 parent[neighborId] = std::make_pair(currentNode, edge);
 
                 visited.push_back(neighborId);
@@ -291,13 +301,14 @@ std::list<std::pair<int, Path>> ring(Graph *G, int source, double ldis, double u
 
         if (outputSize > node_limit)
             break;
-        if (actual_dist[vis] < ldis)
+        if (act_dist[vis] < ldis)
             continue;
 
         int current = vis;
         Path path;
 
         // path.push_front(current);
+        bool aborted = false;
 
         while (current != source)
         {
@@ -305,11 +316,27 @@ std::list<std::pair<int, Path>> ring(Graph *G, int source, double ldis, double u
             path.edges.push_front(DirEdge(e, e->t == current));
             path.length += e->cost;
 
+            if (current == parent[parent[current].first].first)
+            {
+                aborted = true;
+                break;
+            }
+
+
+            if (current == parent[parent[parent[current].first].first].first)
+            {
+                aborted = true;
+                break;
+            }
+
             current = parent[current].first;
         }
-        output.push_back(std::make_pair(vis, path));
 
-        outputSize++;
+        if (!aborted) 
+        {
+            output.push_back(std::make_pair(vis, path));
+            outputSize++;
+        }
     }
 
     return output;

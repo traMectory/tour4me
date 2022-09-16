@@ -34,7 +34,7 @@ public:
 
         runningTime = std::stod(req.get_arg("rt"));
 
-        runningTime = runningTime < 5*60 ? runningTime : 5*60;
+        runningTime = runningTime < 5 * 60 ? runningTime : 5 * 60;
 
         edgeProfitImportance = std::stod(req.get_arg("ep"));
         coveredAreaImportance = std::stod(req.get_arg("ca"));
@@ -52,7 +52,6 @@ public:
 
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
-
         std::ifstream f(filename.c_str());
         if (f.good())
         {
@@ -62,33 +61,44 @@ public:
         mtx.lock();
         try
         {
-            problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
+            problem = Problem("../input/grid-demo.txt");
+            // problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
             printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         }
-        catch(const std::exception& e)
+        catch (const std::exception &e)
         {
             mtx.unlock();
             std::cout << "Something went wrong whilst loading the graph\n";
             return std::shared_ptr<string_response>(new string_response("Something went wrong whilst loading the graph", 404, "text/plain"));
         }
-        
-        mtx.unlock();
 
+        mtx.unlock();
+        std::cout << req.get_arg("tags") << "\n";
         for (int i = 0; i < all_tags.size(); i++)
         {
             if (req.get_arg("tags")[i] == 'd')
             {
                 problem.pref_tags.insert(all_tags[i].attr);
+
+                // std::cout << all_tags[i].attr << "\n";
+            }
+            else if (req.get_arg("tags")[i] == 'a')
+            {
+                problem.avoid_tags.insert(all_tags[i].attr);
+
+                std::cout << all_tags[i].attr << "\n";
             }
         }
 
+        std::cout << "test"
+                  << "\n";
         double best_distance = 1000000000000;
         Node start;
 
         for (Node v : problem.graph.v_nodes)
         {
             double dis = v.distance(lat, lon);
-            
+
             if (dis < best_distance)
             {
 
@@ -96,7 +106,6 @@ public:
                 start = v;
             }
         }
-
 
         problem.start = start.id;
         problem.graph.center_lon = start.lon;
@@ -119,6 +128,8 @@ public:
 
         SolveStatus status = SolveStatus::Unsolved;
 
+        std::cout << "start"
+                  << "\n";
         switch (algorithm)
         {
         case 0:
@@ -135,6 +146,12 @@ public:
         }
         case 2:
         {
+            Jogger jogSolver;
+
+            status = jogSolver.solve(&problem);
+            if (status == SolveStatus::Unsolved)
+                break;
+
             ILS solver;
             status = solver.solve(&problem);
             break;
@@ -143,12 +160,13 @@ public:
         {
             ilp_mtx.lock();
 
-            if (ilp_counter >= 4) {
+            if (ilp_counter >= 4)
+            {
                 ilp_mtx.unlock();
                 return std::shared_ptr<string_response>(new string_response("There are to many requests to handle yours now, please try again later!", 503, "application/json"));
             }
 
-            ilp_counter ++; 
+            ilp_counter++;
 
             ilp_mtx.unlock();
 
@@ -157,13 +175,15 @@ public:
 
             ilp_mtx.lock();
 
-            ilp_counter --;
+            ilp_counter--;
 
             ilp_mtx.unlock();
 
             break;
         }
         }
+        std::cout << "end"
+                  << "\n";
         auto algo_time_2 = std::chrono::high_resolution_clock::now();
 
         auto init_time_int = duration_cast<std::chrono::milliseconds>(init_time_2 - init_time_1);
@@ -171,14 +191,13 @@ public:
 
         problem.metadata.push_back("Initialization time (ms): " + std::to_string(init_time_int.count()));
         problem.metadata.push_back("Algorithm computation time (ms): " + std::to_string(algo_time_int.count()));
-        problem.metadata.push_back("Profit: " + std::to_string(problem.getProfit(problem.path)) + " (theoretical upper bound: " + std::to_string(problem.target_distance) + ")");
-        problem.metadata.push_back("Area: " + std::to_string(std::abs(problem.getArea(problem.path))) + " (theoretical upper bound: " + std::to_string(M_PI * (problem.target_distance/(2*M_PI)) * (problem.target_distance/(2*M_PI))) + ")");
         // problem.metadata.push_back("Quality: " + std::to_string(problem.getQuality(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
-
 
         switch (status)
         {
         case SolveStatus::Optimal:
+            problem.metadata.push_back("Profit: " + std::to_string(problem.getProfit(problem.path)) + " (theoretical upper bound: " + std::to_string(problem.target_distance) + ")");
+            problem.metadata.push_back("Area: " + std::to_string(std::abs(problem.getArea(problem.path))) + " (theoretical upper bound: " + std::to_string(M_PI * (problem.target_distance / (2 * M_PI)) * (problem.target_distance / (2 * M_PI))) + ")");
             return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
             if (gpx)
             {
@@ -186,6 +205,8 @@ public:
             }
             break;
         case SolveStatus::Feasible:
+            problem.metadata.push_back("Profit: " + std::to_string(problem.getProfit(problem.path)) + " (theoretical upper bound: " + std::to_string(problem.target_distance) + ")");
+            problem.metadata.push_back("Area: " + std::to_string(std::abs(problem.getArea(problem.path))) + " (theoretical upper bound: " + std::to_string(M_PI * (problem.target_distance / (2 * M_PI)) * (problem.target_distance / (2 * M_PI))) + ")");
             return std::shared_ptr<string_response>(new string_response(problem.outputToString(), 200, "application/json"));
             if (gpx)
             {
@@ -267,20 +288,7 @@ int main(int argc, char **argv)
 
     if (test)
     {
-        Problem problem = Problem("../input/grid-51.6250-51.1250-7.9375-7.1875.txt");
-
-        problem.start = 156666;
-
-        problem.runningTime = 1;
-        problem.edgeProfitImportance = 1;
-        problem.coveredAreaImportance = 0;
-        problem.pref_tags.insert("path");
-        problem.pref_tags.insert("track");
-
-        problem.target_distance = 50000;
-
-        Jogger solver;
-        std::cout << "TESTING: " << (solver.solve(&problem) != SolveStatus::Unsolved ? "succesfull" : "unsuccesfull") << "\n";
+        runExperiments();
 
         return 0;
     }

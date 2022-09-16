@@ -19,7 +19,7 @@ logging.basicConfig(filename="log.txt",
 
 useful_tags_way = ['oneway', 'lanes', 'name', 'highway',
                    'maxspeed', 'width', 'est_width', 'surface']
-ox.config(use_cache=False, log_console=False, useful_tags_way=useful_tags_way)
+ox.config(use_cache=True, log_console=True, useful_tags_way=useful_tags_way)
 
 
 # left of germany 5.746989 -> 5.5
@@ -37,6 +37,16 @@ lat_pad = 0.5/4
 
 abs_min_lon = 5.5
 abs_max_lon = 15.25
+lon_gran = 0.75/2
+lon_pad = 0.75/4
+
+abs_min_lat = 51.25
+abs_max_lat = 51.26
+lat_gran = 0.5/2
+lat_pad = 0.5/4
+
+abs_min_lon = 7.375
+abs_max_lon = 7.4
 lon_gran = 0.75/2
 lon_pad = 0.75/4
 
@@ -83,7 +93,7 @@ def getBackbone(north, south, east, west, outputName):
     # pass each polygon exterior coordinates in the list to the API, one at a
     # time. The '>' makes it recurse so we get ways and the ways' nodes.
     for polygon_coord_str in polygon_coord_strs:
-        query_str = f"{overpass_settings};(relation[\"route\"=\"bicycle\"](poly:'{polygon_coord_str}');>;);out;"
+        query_str = f"{overpass_settings};(relation[\"route\"~\"^(bicycle|hiking|mtb)$\"](poly:'{polygon_coord_str}');>;);out;"
         # query_str = f"{overpass_settings};(relation{osm_filter}(poly:'{polygon_coord_str}');>;);out;"
         response_json = downloader.overpass_request(data={"data": query_str})
         response_jsons.append(response_json)
@@ -151,8 +161,23 @@ def outputGraph(graph, output_name):
 
     paths = []
 
+    # addedEdges = set()
+
     for edge in graph.edges:
         s, t, _ = edge
+
+        if t <= s:
+            continue
+        #     if (s, t) in addedEdges:
+        #         continue
+        #     else:
+        #         addedEdges.add((s, t))
+        # else:
+        #     if (t, s) in addedEdges:
+        #         continue
+        #     else:
+        #         addedEdges.add((t, s))
+
         data = graph.get_edge_data(s, t)[0]
         # print(data)
         ref = data['osmid']
@@ -186,8 +211,8 @@ def outputGraph(graph, output_name):
         text_file.write(node_str)
 
 
-process_tags = ['cycleway', 'paved', 'cobblestone', 'gravel', 'unpaved', 'compacted', 'track',
-                'fine_gravel', 'rock', 'pebblestone', 'unclassified', 'resedential', 'path', 'track', 'secondary']
+process_tags = ['cycleway', 'paved', 'cobblestone', 'gravel', 'unpaved', 'compacted', 'track', 'ground'
+                'fine_gravel', 'rock', 'pebblestone', 'unclassified', 'resedential', 'path', 'track', 'secondary', 'footway']
 
 count = 0
 
@@ -212,10 +237,10 @@ while lat < abs_max_lat:
 
         print(f"Calculating gridcell {count}")
 
-        getBackbone(max_lat, min_lat, max_lon, min_lon, file_name + "_B")
-        logging.info(f"{count} - Calculated backbone for {max_lat} {min_lat} {max_lon} {min_lon}")
+        # getBackbone(max_lat, min_lat, max_lon, min_lon, file_name + "_B")
+        # logging.info(f"{count} - Calculated backbone for {max_lat} {min_lat} {max_lon} {min_lon}")
 
-        G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon, network_type='bike')
+        G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon)
         outputGraph(G, file_name)
         logging.info(f"{count} - Calculated main graph (n={len(G.nodes)}, m={len(G.edges)}) for {max_lat} {min_lat} {max_lon} {min_lon}")
 

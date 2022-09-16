@@ -10,5 +10,6 @@ extern bool test;
 
 enum class SolveStatus { Optimal, Feasible, Unsolved, Timeout };
 
+
 void parseOptions(int argc, char* argv[]);
 void printUsage();
