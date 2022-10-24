@@ -263,7 +263,15 @@
                         [abs_min_lat - lat_pad, abs_max_lon + lon_pad],
                         [abs_max_lat + lat_pad, abs_max_lon + lon_pad],
                         [abs_max_lat + lat_pad, abs_min_lon - lon_pad]] // actual cutout polygon
-                        ], { interactive: false, color: 'red' }).addTo(map);
+                        ], { interactive: true, color: 'black', weight: "0", fillOpacity: 0.08}).addTo(map);
+
+                    outer_box.on('mouseover', function(e) {
+                        outer_box.setStyle({color: "red", fillOpacity: 0.15, transition: "fill .75s;"});
+                    });
+
+                    outer_box.on('mouseout', function(e) {
+                        outer_box.setStyle({color: "black", fillOpacity: 0.08, transition: "fill .75s;"});
+                    });
 
                     map.on('click', onClick);
 
