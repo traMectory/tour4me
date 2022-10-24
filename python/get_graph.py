@@ -40,13 +40,23 @@ abs_max_lon = 15.25
 lon_gran = 0.75/2
 lon_pad = 0.75/4
 
-abs_min_lat = 51.25
-abs_max_lat = 51.26
+# abs_min_lat = 51.25
+# abs_max_lat = 51.26
+# lat_gran = 0.5/2
+# lat_pad = 0.5/4
+
+# abs_min_lon = 7.375
+# abs_max_lon = 7.4
+# lon_gran = 0.75/2
+# lon_pad = 0.75/4
+
+abs_min_lat = 47.45
+abs_max_lat = 47.5
 lat_gran = 0.5/2
 lat_pad = 0.5/4
 
-abs_min_lon = 7.375
-abs_max_lon = 7.4
+abs_min_lon = -122.4
+abs_max_lon = -122.3
 lon_gran = 0.75/2
 lon_pad = 0.75/4
 
@@ -216,10 +226,12 @@ process_tags = ['cycleway', 'paved', 'cobblestone', 'gravel', 'unpaved', 'compac
 
 count = 0
 
+
 lat = abs_min_lat
 while lat < abs_max_lat:
     lon = abs_min_lon
     while lon < abs_max_lon:
+        print('hoi')
 
         min_lat = lat - lat_pad
         max_lat = lat + lat_gran + lat_pad
@@ -237,8 +249,8 @@ while lat < abs_max_lat:
 
         print(f"Calculating gridcell {count}")
 
-        # getBackbone(max_lat, min_lat, max_lon, min_lon, file_name + "_B")
-        # logging.info(f"{count} - Calculated backbone for {max_lat} {min_lat} {max_lon} {min_lon}")
+        getBackbone(max_lat, min_lat, max_lon, min_lon, file_name + "_B")
+        logging.info(f"{count} - Calculated backbone for {max_lat} {min_lat} {max_lon} {min_lon}")
 
         G = ox.graph_from_bbox(max_lat, min_lat, max_lon, min_lon)
         outputGraph(G, file_name)
