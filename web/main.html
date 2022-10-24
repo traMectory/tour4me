@@ -263,14 +263,22 @@
                         [abs_min_lat - lat_pad, abs_max_lon + lon_pad],
                         [abs_max_lat + lat_pad, abs_max_lon + lon_pad],
                         [abs_max_lat + lat_pad, abs_min_lon - lon_pad]] // actual cutout polygon
-                        ], { interactive: true, color: 'black', weight: "0", fillOpacity: 0.08}).addTo(map);
+                        ], { interactive: true, color: 'black', weight: "0", fillOpacity: 0.08 }).addTo(map);
 
-                    outer_box.on('mouseover', function(e) {
-                        outer_box.setStyle({color: "red", fillOpacity: 0.15, transition: "fill .75s;"});
+                    inner_box = L.polygon(
+                        [[abs_min_lat - lat_pad, abs_min_lon - lon_pad],
+                        [abs_min_lat - lat_pad, abs_max_lon + lon_pad],
+                        [abs_max_lat + lat_pad, abs_max_lon + lon_pad],
+                        [abs_max_lat + lat_pad, abs_min_lon - lon_pad]
+                        ], { weight: "0", fillOpacity: 0 }).addTo(map);
+
+
+                    outer_box.on('click', function (e) {
+                        outer_box.setStyle({ color: "red", fillOpacity: 0.15 });
                     });
 
-                    outer_box.on('mouseout', function(e) {
-                        outer_box.setStyle({color: "black", fillOpacity: 0.08, transition: "fill .75s;"});
+                    inner_box.on('click', function (e) {
+                        outer_box.setStyle({ color: "black", fillOpacity: 0.08 });
                     });
 
                     map.on('click', onClick);
