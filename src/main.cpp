@@ -48,7 +48,8 @@ public:
 
         std::stringstream stream;
         stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
-        filename = stream.str();
+        // filename = stream.str(); 
+        filename = "grid-demo"; // For demo purposes
 
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
@@ -61,8 +62,8 @@ public:
         mtx.lock();
         try
         {
-            problem = Problem("../input/grid-demo.txt");
-            // problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
+            // problem = Problem("../input/grid-demo" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
+            problem = Problem("../input/" + filename + (mapType == 'b' ? "_B" : "") + ".txt");
             printf("Got request: lat %f, lon %f, dis %f\n", lat, lon, distance);
         }
         catch (const std::exception &e)

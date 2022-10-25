@@ -4,6 +4,7 @@
 #include "problem.h"
 #include "edge.h"
 #include <list>
+#include <vector>
 
 
 

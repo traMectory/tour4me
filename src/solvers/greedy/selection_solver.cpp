@@ -3,7 +3,8 @@
 SolveStatus Selection::solve(Problem *P)
 {
 
-    bool visited[P->graph.v_edges.size()];
+    std::vector<bool> visited;
+    visited.assign(P->graph.v_edges.size(), false);
 
     int current = P->start;
     P->path.push_back(current);
@@ -17,7 +18,7 @@ SolveStatus Selection::solve(Problem *P)
         validCandidates = false;
         Edge *bestEdge;
         int bestNeigh;
-        double bestProfit = 0;
+        double bestProfit = -9999999999;
         for (Edge *e : P->graph.v_nodes[current].incident)
         {
             int neigh = e->s == current ? e->t : e->s;
@@ -28,7 +29,7 @@ SolveStatus Selection::solve(Problem *P)
                 continue;
             }
 
-            double prof = (!visited[e->id] ? e->profit * e->cost : bestProfit + 0.0000000000000001);
+            double prof = (!visited[e->id] ? e->profit * e->cost : -dis);
 
             if (prof > bestProfit)
             {
@@ -51,6 +52,8 @@ SolveStatus Selection::solve(Problem *P)
             // }
         }
     }
+
+    std::cout << length << "\n";
 
     // for (auto it = endPath.edges.rbegin(); it != endPath.edges.rend(); ++it)
     // {
