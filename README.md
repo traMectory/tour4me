@@ -4,12 +4,14 @@ A framework for straightforward integration of algorithms that solve the Touring
 
 Github Page: https://tramectory.github.io/tour4me/
 # Requirements
-<ol>
-<li>Gurobi : v9.5 : https://www.gurobi.com/</li>
-<li>libhttpserver : https://github.com/etr/libhttpserver</li>
-<li>g++ : 11.2.0</li>
-<li>cmake : 3.23.1</li>
-</ol>
+
+1. Gurobi : v9.5 : https://www.gurobi.com/
+2. libhttpserver : [https://github.com/etr/libhttpserver (SHA 415e02f01fb8cb97c91d6a615479531bae279b7c)](https://github.com/etr/libhttpserver/tree/415e02f01fb8cb97c91d6a615479531bae279b7c)
+3. g++ : 11.2.0
+4. cmake : 3.23.1
+
+
+
 
 # Description
 Our Framework contains 4 algorithms.
