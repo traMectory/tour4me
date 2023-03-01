@@ -49,7 +49,14 @@ public:
         std::stringstream stream;
         stream << std::fixed << std::setprecision(4) << "grid-" << max_lat << "-" << min_lat << "-" << max_lon << "-" << min_lon;
         // filename = stream.str(); 
-        filename = "grid-demo"; // For demo purposes
+        
+        filename = "grid-dor";
+
+        if (req.get_arg("map").compare("sea")) {
+            filename = "grid-sea";
+        }
+
+        // filename = "grid-demo"; // For demo purposes
 
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
 
