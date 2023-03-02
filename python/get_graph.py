@@ -40,15 +40,15 @@ abs_max_lon = 15.25
 lon_gran = 0.75/2
 lon_pad = 0.75/4
 
-abs_min_lat = 51.25
-abs_max_lat = 51.26
-lat_gran = 0.5/2
-lat_pad = 0.5/4
+abs_min_lat = 51.3648
+abs_max_lat = 51.37
+lat_gran = 0.5/4
+lat_pad = 0.5/6
 
-abs_min_lon = 7.375
-abs_max_lon = 7.4
-lon_gran = 0.75/2
-lon_pad = 0.75/4
+abs_min_lon = 7.218
+abs_max_lon = 7.3
+lon_gran = 0.75/4
+lon_pad = 0.75/6
 
 # abs_min_lat = 47.45
 # abs_max_lat = 47.5

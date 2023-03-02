@@ -6,7 +6,7 @@ SolveStatus Jogger::solve(Problem *P)
     double init_ringSize = 5;
     double temp_ringSize = 1000;
 
-    std::list<std::pair<int, Path>> s_ring = ring(&P->graph, P->start, P->target_distance / 3 - init_ringSize, P->target_distance / 3 + init_ringSize, 50, nullptr);
+    std::list<std::pair<int, Path>> s_ring = ring(&P->graph, P->start, P->target_distance / 3 - init_ringSize, P->target_distance / 3 + init_ringSize, 100, nullptr);
 
     std::set<int> contained;
     for (auto &pair : s_ring)

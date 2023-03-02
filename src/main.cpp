@@ -52,10 +52,10 @@ public:
         
         filename = "grid-dor";
 
-        if (req.get_arg("map").compare("sea")) {
+
+        if (req.get_arg("map").compare("sea") == 0) {
             filename = "grid-sea";
         }
-
         // filename = "grid-demo"; // For demo purposes
 
         // std::string filename = "grid-" + std::to_string(max_lat) + "-" + std::to_string(min_lat) + "-" + std::to_string(max_lon) + "-" + std::to_string(min_lon);
@@ -97,9 +97,7 @@ public:
                 std::cout << all_tags[i].attr << "\n";
             }
         }
-
-        std::cout << "test"
-                  << "\n";
+        
         double best_distance = 1000000000000;
         Node start;
 
