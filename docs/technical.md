@@ -4,6 +4,8 @@ layout: template
 filename: technical
 --- 
 
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script> <style> * { box-sizing: border-box; } .column { float: left;R width: 50%; padding: 5px; } /* Clearfix (clear floats) */ .row::after { content: ""; clear: both; display: table; } </style>
+
 # Technical Details
 
 The touring problem aims to find an ``interesting'' (round) trip of a given length. Here, what is considered interesting depends on the type of the desired route, e.g., an user may be looking for a off-road cycling trip or fast running route.
