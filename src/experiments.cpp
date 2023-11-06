@@ -26,7 +26,6 @@ void runExperiments()
     Selection sel;
     Jogger jog;
     ILS ils;
-    ILP ilp;
 
     for (int i = 0; i < 10; i++)
     {

@@ -162,31 +162,6 @@ public:
             status = solver.solve(&problem);
             break;
         }
-        case 3:
-        {
-            ilp_mtx.lock();
-
-            if (ilp_counter >= 4)
-            {
-                ilp_mtx.unlock();
-                return std::shared_ptr<string_response>(new string_response("There are to many requests to handle yours now, please try again later!", 503, "application/json"));
-            }
-
-            ilp_counter++;
-
-            ilp_mtx.unlock();
-
-            ILP solver;
-            status = solver.solve(&problem);
-
-            ilp_mtx.lock();
-
-            ilp_counter--;
-
-            ilp_mtx.unlock();
-
-            break;
-        }
         }
         std::cout << "end"
                   << "\n";

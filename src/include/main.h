@@ -6,7 +6,6 @@
 #include "miscellaneous.h"
 #include "problem.h"
 #include "ils.h"
-#include "ilp_solver.h"
 #include <iomanip>
 #include <sstream>
 #include <cassert>
@@ -51,4 +50,4 @@ struct Tag
 };
 
 std::vector<Tag> all_tags{{"footway", highway}, {"cycleway", highway},  {"unclassified", highway}, {"residential", highway}, {"path", highway}, {"track", highway}, {"secondary", highway}, {"paved", surface}, {"cobblestone", surface}, {"gravel", surface}, {"unpaved", surface}, {"compacted", surface}, {"fine_gravel", surface}, {"rock", surface}, {"pebblestone", surface}};
-std::vector<std::string> algorithms{"greedy", "minCost", "ILS", "ILP"};
+std::vector<std::string> algorithms{"greedy", "minCost", "ILS"};
