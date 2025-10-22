@@ -132,26 +132,25 @@ void Problem::outputToGPX(std::string file_name) {
     outputFile << "</gpx>";
 }
 
-std::string Problem::outputToString() {
-
+std::string prepareString(Graph *graph, std::vector<int> path, std::vector<std::string> metadata) {
     std::string outputString = "{\n    \"path\": [\n";
 
     for (auto it = path.begin(), end = --path.end(); it != end; ++it) {
-        outputString += "        [" + std::to_string(graph.v_nodes[*it].lat) + "," + std::to_string(graph.v_nodes[*it].lon) + "], \n";
+        outputString += "        [" + std::to_string(graph->v_nodes[*it].lat) + "," + std::to_string(graph->v_nodes[*it].lon) + "], \n";
 
-        Edge* edge = graph.getEdge(*it, *(std::next(it)));
+        Edge* edge = graph->getEdge(*it, *(std::next(it)));
         
         if (edge == nullptr)
             continue;
 
-        bool reverse = graph.v_nodes[*it].g_id < graph.v_nodes[*(std::next(it))].g_id;
+        bool reverse = graph->v_nodes[*it].g_id < graph->v_nodes[*(std::next(it))].g_id;
         for (int j = 0; j < edge->geo_locs.size(); j++) {
             auto pair = edge->geo_locs[reverse ? j : edge->geo_locs.size() - j - 1];
             outputString += "        [" + std::to_string(pair.first) + "," + std::to_string(pair.second) + "], \n";
         }
     }
 
-    outputString += "        [" + std::to_string(graph.v_nodes[*(path.begin())].lat) + "," + std::to_string(graph.v_nodes[*(path.begin())].lon) + "] \n";
+    outputString += "        [" + std::to_string(graph->v_nodes[*(path.begin())].lat) + "," + std::to_string(graph->v_nodes[*(path.begin())].lon) + "] \n";
 
     outputString += "    ],\n";
 
@@ -163,6 +162,13 @@ std::string Problem::outputToString() {
     outputString += "    ]\n}";
 
     return outputString;
+}
+
+std::string Problem::outputToString() {
+
+    std::vector<int> node_path(path.begin(), path.end());
+
+    return prepareString(&graph, node_path, metadata);
 }
 
 void Problem::calculateProfit(Graph* G) {

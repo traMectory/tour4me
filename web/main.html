@@ -273,14 +273,17 @@
             but.setAttribute("aria-disabled", "true");
             but.classList.add("disabled");
 
+            var blueIcon = L.icon({
+                iconUrl: 'https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png',
+                iconSize: [48, 48],
+                iconAnchor: [24, 48],
+            });
 
             $.ajax({
                 url: "graphdata",
                 contentType: "application/json",
                 dataType: 'json',
                 success: function (result) {
-                    // center_lat = result["center_lat"];
-                    // center_lon = result["center_lon"];
 
                     tags = result["tags"];
                     algos = result["algorithms"];
@@ -296,11 +299,9 @@
                         zoomOffset: -1
                     }).addTo(map);
 
-                    // var polyline = L.polyline(path, {color: 'red'}).addTo(map);
-
                     // zoom the map to the polyline
 
-                    marker = L.marker([center_lat, center_lon], { draggable: 'true' }).addTo(map);
+                    marker = L.marker([center_lat, center_lon], { icon: blueIcon, draggable: true }).addTo(map);
 
                     outer_box = L.polygon(
                         [[[900, -1800],
@@ -353,12 +354,6 @@
 
                     algosRadio = document.getElementById("algoRadio");
 
-                    // const algo = algos[0];
-                    // var name = algo[0].toUpperCase() + algo.slice(1);
-                    // algosRadio.innerHTML += "<input type=\"radio\" class=\"btn-check\" name=\"algorithm\" value=" + 0 + " id=\"" + algo + "\" autocomplete=\"off\" checked/>";
-                    // algosRadio.innerHTML += "<label class=\"btn btn-primary\" for=\"" + algo + "\">" + name + "</label>";
-
-
                     for (let index = 0; index < algos.length; index++) {
                         const algo = algos[index];
                         var name = algo[0].toUpperCase() + algo.slice(1);
@@ -390,7 +385,6 @@
                     });
 
                     changeRanges(document.getElementById("edgeProfit"), "coveredArea")
-                    // getBackbone();
 
                 },
                 error: function (xhr, status) {
@@ -464,21 +458,6 @@
                     min_lat = result["min_lat"];
                     max_lon = result["max_lon"];
                     min_lon = result["min_lon"];
-
-                    // if (inner_box) {
-                    //     inner_box.remove(map);
-                    // }
-
-                    // inner_box = L.polygon(
-                    //     [[[abs_min_lat - lat_pad, abs_min_lon - lon_pad],
-                    //     [abs_min_lat - lat_pad, abs_max_lon + lon_pad],
-                    //     [abs_max_lat + lat_pad, abs_max_lon + lon_pad],
-                    //     [abs_max_lat + lat_pad, abs_min_lon - lon_pad]],
-                    //     [[min_lat, min_lon],
-                    //     [min_lat, max_lon],
-                    //     [max_lat, max_lon],
-                    //     [max_lat, min_lon]]
-                    //     ], { interactive: false, color: 'yellow' }).addTo(map);
                 },
                 error: function (xhr, status) {
                     document.getElementById("overlay").style.display = "none";

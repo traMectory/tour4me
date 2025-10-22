@@ -11,7 +11,7 @@ using namespace httpserver;
 class calculate_tour : public http_resource
 {
 public:
-    const std::shared_ptr<http_response> render_GET(const http_request &req)
+    std::shared_ptr<http_response> render_GET(const http_request &req)
     {
 
         auto init_time_1 = std::chrono::high_resolution_clock::now();
@@ -39,7 +39,8 @@ public:
         edgeProfitImportance = std::stod(req.get_arg("ep"));
         coveredAreaImportance = std::stod(req.get_arg("ca"));
 
-        char mapType = req.get_arg("mt")[0];
+        std::string mt_args = req.get_arg("mt");
+        char mapType = mt_args[0];
 
         double min_lat = lat - std::fmod((lat - abs_min_lat), lat_gran) - lat_pad;
         double max_lat = min_lat + 2 * lat_pad + lat_gran;
@@ -52,8 +53,8 @@ public:
         
         filename = "grid-dor";
 
-
-        if (req.get_arg("map").compare("sea") == 0) {
+        std::string gpx_arg = req.get_arg("map");
+        if (gpx_arg.compare("sea") == 0) {
             filename = "grid-sea";
         }
         // filename = "grid-demo"; // For demo purposes
@@ -81,16 +82,17 @@ public:
         }
 
         mtx.unlock();
-        std::cout << req.get_arg("tags") << "\n";
+        
+        std::string tags_arg = req.get_arg("tags");
         for (int i = 0; i < all_tags.size(); i++)
         {
-            if (req.get_arg("tags")[i] == 'd')
+            if (tags_arg[i] == 'd')
             {
                 problem.pref_tags.insert(all_tags[i].attr);
 
                 // std::cout << all_tags[i].attr << "\n";
             }
-            else if (req.get_arg("tags")[i] == 'a')
+            else if (tags_arg[i] == 'a')
             {
                 problem.avoid_tags.insert(all_tags[i].attr);
 
@@ -172,7 +174,6 @@ public:
 
         problem.metadata.push_back("Initialization time (ms): " + std::to_string(init_time_int.count()));
         problem.metadata.push_back("Algorithm computation time (ms): " + std::to_string(algo_time_int.count()));
-        // problem.metadata.push_back("Quality: " + std::to_string(problem.getQuality(problem.path)) + " (theoretical upper bound: " + std::to_string(M_PI * problem.target_distance*problem.target_distance) + ")");
 
         switch (status)
         {
@@ -206,7 +207,7 @@ public:
 
 class graph_data : public http_resource
 {
-    const std::shared_ptr<http_response> render_GET(const http_request &req)
+    std::shared_ptr<http_response> render_GET(const http_request &req)
     {
         double lat = -1;
         double lon = -1;
@@ -236,8 +237,7 @@ class graph_data : public http_resource
         stream << "    \"min_lon\": " << min_lon << ", \n";
         stream << "    \"center_lat\": " << lat << ", \n";
         stream << "    \"center_lon\": " << lon << ", \n";
-        // stream << "    \"center_lat\": " << problem.graph.center_lat << ", \n";
-        // stream << "    \"center_lon\": " << problem.graph.center_lon << ", \n";
+        
         stream << "    \"tags\": [\n";
         for (int i = 0; i < all_tags.size() - 1; i++)
             stream << "        [\"" << all_tags[i].attr << "\", " << all_tags[i].type << "],\n";
@@ -257,7 +257,7 @@ class graph_data : public http_resource
 class index_resource : public http_resource
 {
 public:
-    const std::shared_ptr<http_response> render_GET(const http_request &req)
+    std::shared_ptr<http_response> render_GET(const http_request &req)
     {
         return std::shared_ptr<file_response>(new file_response("../web/main.html", 200, "text/html"));
     }
@@ -283,9 +283,6 @@ int main(int argc, char **argv)
 
     graph_data gdr;
     ws.register_resource("/graphdata", &gdr);
-
-    // backbone_data bdr;
-    // ws.register_resource("/backbone", &bdr);
 
     index_resource hwr;
     ws.register_resource("/", &hwr);

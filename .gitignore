@@ -4,6 +4,8 @@ gmon.out
 main
 analysis.txt
 input/*
+!input/grid-dor.txt
+!input/grid-sea.txt
 output/*
 build/*
 debug/*
